@@ -1,1 +1,8 @@
 numpy
+scipy
+psutil
+textx
+pyyaml
+diffpy.srfit
+diffpy.srreal
+diffpy.structure

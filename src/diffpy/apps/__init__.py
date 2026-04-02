@@ -12,7 +12,7 @@
 # See LICENSE.rst for license information.
 #
 ##############################################################################
-"""User applications to help with tasks using diffpy packages"""
+"""User applications to help with tasks using diffpy packages."""
 
 # package version
 from diffpy.apps.version import __version__  # noqa
