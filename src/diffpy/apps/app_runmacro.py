@@ -1,10 +1,11 @@
-from pathlib import Path
+import inspect
 from collections import OrderedDict
+from pathlib import Path
+
 import yaml
 from textx import metamodel_from_str
 
 from diffpy.apps.pdfadapter import PDFAdapter
-import inspect
 
 grammar = r"""
 Program:
@@ -84,7 +85,7 @@ class MacroParser:
 
     def load_command_processor(self, command):
         if command.component == "structure":
-            # TODO: support multiple sturctures input in the future
+            # TODO: support multiple structures input in the future
             key = "initialize_structures.structure_paths"
             variable = "structure"
         elif command.component == "profile":

@@ -3,6 +3,8 @@ import warnings
 from pathlib import Path
 
 import numpy
+from scipy.optimize import least_squares
+
 from diffpy.srfit.fitbase import (
     FitContribution,
     FitRecipe,
@@ -12,7 +14,6 @@ from diffpy.srfit.fitbase import (
 from diffpy.srfit.pdf import PDFGenerator, PDFParser
 from diffpy.srfit.structure import constrainAsSpaceGroup
 from diffpy.structure.parsers import getParser
-from scipy.optimize import least_squares
 
 
 class PDFAdapter:

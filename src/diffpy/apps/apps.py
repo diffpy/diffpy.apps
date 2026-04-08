@@ -1,7 +1,7 @@
 import argparse
 
-from diffpy.apps.version import __version__  # noqa
 from diffpy.apps.app_runmacro import runmacro
+from diffpy.apps.version import __version__  # noqa
 
 
 class DiffpyHelpFormatter(argparse.RawDescriptionHelpFormatter):
