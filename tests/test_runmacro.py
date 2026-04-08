@@ -4,7 +4,7 @@ import numpy
 from helper import make_cmi_recipe
 from scipy.optimize import least_squares
 
-from diffpy.apps.diffpy_interpreter import DiffpyInterpreter
+from diffpy.apps.app_runmacro import MacroParser
 
 
 def test_meta_model():
@@ -70,9 +70,9 @@ variables:
 - qbroad: 0.02
 ---
 """
-    diffpy_interpreter = DiffpyInterpreter()
-    diffpy_interpreter.interpret(diffpy_dsl)
-    diffpy_interpreter.configure_adapter()
+    diffpy_interpreter = MacroParser()
+    diffpy_interpreter.parse(diffpy_dsl)
+    diffpy_interpreter.preprocess()
     interpreter_results = diffpy_interpreter.run()
     for var_name in variables_to_refine:
         diffpy_value = diffpy_pv_dict[var_name]

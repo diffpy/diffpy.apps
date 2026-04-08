@@ -1,7 +1,9 @@
+import json
 import warnings
 from pathlib import Path
 
 import numpy
+from scipy.optimize import least_squares
 
 from diffpy.srfit.fitbase import (
     FitContribution,
@@ -152,6 +154,9 @@ class PDFAdapter:
             structures.append(structure)
             if not have_spacegroups:
                 spacegroups.append(spacegroup)
+            else:
+                if spacegroups[i] == "auto":
+                    spacegroups[i] = spacegroup
             pdfgenerator = PDFGenerator(name)
             pdfgenerator.setStructure(structure)
             if run_parallel:
@@ -160,7 +165,7 @@ class PDFAdapter:
         self.spacegroups = spacegroups
         self.pdfgenerators = pdfgenerators
 
-    def initialize_contribution(self, equation_string=None):
+    def initialize_contribution(self, equation=None):
         """Create the FitContribution from the loaded profile and
         generators.
 
@@ -169,19 +174,21 @@ class PDFAdapter:
 
         Parameters
         ----------
-        equation_string : str, optional
-            Equation passed to FitContribution.setEquation.
+        equation : list of str, optional
+            The list of a single equation passed to
+            FitContribution.setEquation.
 
         Returns
         -------
         FitContribution
             The configured contribution object.
         """
+        equation = equation[0] if equation is not None else None
         contribution = FitContribution("pdfcontribution")
         contribution.setProfile(self.profile)
         for pdfgenerator in self.pdfgenerators:
             contribution.addProfileGenerator(pdfgenerator)
-        contribution.setEquation(equation_string)
+        contribution.setEquation(equation)
         self.contribution = contribution
         return self.contribution
 
@@ -229,6 +236,35 @@ class PDFAdapter:
                 )
         recipe.fithooks[0].verbose = 0
         self.recipe = recipe
+
+    def add_contribution_variables(self, variable_names):
+        """Add contribution parameters to the recipe.
+
+        Parameters
+        ----------
+        variable_names : list of str
+            The names of the variables to be added to the recipe.
+            e.g. 's0' for scale factor.
+        """
+        for var_name in variable_names:
+            self.recipe.addVar(
+                getattr(self.contribution, var_name),
+                name=var_name,
+                fixed=False,
+            )
+
+    def refine_variables(self, variable_names):
+        """Refine the specified variables.
+
+        Parameters
+        ----------
+        variable_names : list of str
+            The names of the variables to be refined.
+        """
+        self.recipe.fix("all")
+        for var in variable_names:
+            self.recipe.free(var)
+            least_squares(self.recipe.residual, self.recipe.values)
 
     def set_initial_variable_values(self, variable_name_to_value: dict):
         """Set recipe parameter values by name.
@@ -299,3 +335,7 @@ class PDFAdapter:
                 certain = False
         results_dict["certain"] = certain
         return results_dict
+
+    def save_results(self, result_path):
+        with open(result_path, "w") as f:
+            json.dump(self.get_results(), f, indent=4)

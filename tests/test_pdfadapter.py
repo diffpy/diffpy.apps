@@ -51,7 +51,7 @@ def test_pdfadapter():
         str(profile_path), q_range=(0.1, 25), calculation_range=(1.5, 50, 0.01)
     )
     adapter.initialize_structures([str(structure_path)])
-    adapter.initialize_contribution(equation_string="s0*G1")
+    adapter.initialize_contribution(equation=["s0*G1"])
     adapter.initialize_recipe()
     adapter.recipe.addVar(list(adapter.recipe._contributions.values())[0].s0)
     adapter.set_initial_variable_values(initial_pv_dict)
