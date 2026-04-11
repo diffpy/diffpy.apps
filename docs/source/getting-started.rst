@@ -8,72 +8,144 @@
 Getting started
 ================
 
-Here are some example templates provided to help you get started with writing your documentation. You can use these templates to create your own documentation.
+``diffpy.apps`` provides user applications to help with tasks using
+diffpy packages. This page contains the instructions for all applications
+available, including:
 
-Reuse ``.rst`` files across multiple pages
-------------------------------------------
+- :ref:`runmacro`
 
-Here is how you can reuse a reusable block of ``.rst`` files across multiple pages:
+.. _runmacro:
 
-.. include:: snippets/example-table.rst
+Use ``runmacro`` to start refinement with a macro file
+------------------------------------------------------
 
-.. warning::
-
-    Ensure that the ``.rst`` file you are including is not too long. If it is too long, it may be better to split it into multiple files and include them separately.
-
-Refer to a specific section in the documentation
-------------------------------------------------
-
-You can use the ``ref`` tag to refer to a specific section in the documentation. For example, you can refer to the section below using the ``:ref:`` tag as shown :ref:`here <attach-image>`.
-
-.. note::
-
-    Please check the raw ``.rst`` file of this page to see the exact use of the ``:ref:`` tag.
-
-Embed your code snippets in the documentation
----------------------------------------------
-
-Here is how you can write a block of code in the documentation. You can use the ``code-block`` directive to write a block of code in the documentation. For example, you can write a block of code as shown below:
+The ``runmacro`` application allows users to execute macros written in the
+diffpy macro language.
 
 .. code-block:: bash
 
-    # Create a new environment, without build dependencies (pure Python package)
-    conda create -n <package_name>-env python=3.14 \
-        --file requirements/tests.txt \
-        --file requirements/conda.txt
+    diffpy.app runmacro <macro_file.dp-in>
 
-    # Create a new environment, with build dependencies (non-pure Python package)
-    conda create -n <package_name>-env python=3.14 \
-        --file requirements/tests.txt \
-        --file requirements/conda.txt \
-        --file requirements/build.txt
+To follow the example,
 
-    # Activate the environment
-    conda activate <package_name>_env
+1. download the example files from :download:`here <../example/runmacro_example.zip>`
 
-    # Install your package locally
-    # `--no-deps` to NOT install packages again from `requirements.pip.txt`
-    pip install -e . --no-deps
+2. extract the downloaded files and navigate to the extracted directory
 
-    # Run pytest locally
-    pytest
+.. code-block:: bash
 
-    # ... run example tutorials
+    mv /path/to/runmacro runmacro_example.zip working_directory
+    cd working_directory
+    unzip runmacro_example.zip
 
-.. _attach-image:
+3. run the macro using the ``runmacro`` application
 
-Attach an image to the documentation
-------------------------------------
+.. code-block:: bash
 
-Here is how you attach an image to the documentation. The ``/docs/source/img/scikit-package-logo-text.png`` example image is provided in the template.
+    diffpy.app runmacro example_macro.dp-in
 
-.. image:: ./img/scikit-package-logo-text.png
-    :alt: codecov-in-pr-comment
-    :width: 400px
-    :align: center
+How to write macro
+~~~~~~~~~~~~~~~~~~
+
+Let's still use the Ni example created earlier, but this time we will
+write the macro file from scratch.
+
+1. Prepare the structure and profile file you want to work with.
+
+.. note::
+
+    The structure file is a ``.cif`` file representing the atomic arrangement in
+    your sample, and the profile file is a ``.gr`` file containing the
+    experimental data.
+
+Start the macro file with the following two lines:
+
+.. code-block:: text
+
+    load structure G1 from "path/to/structure.cif"
+    load profile exp_ni from "path/to/profile.gr"
+
+``G1`` and ``exp_ni`` are the identifiers used in the macro to refer to the
+structure and profile files, respectively. Quotes ``""`` are must to specify
+the file paths.
+
+2. (Optional) Declare the space group of the structure.
+
+.. code-block:: text
+
+    set G1 spacegroup as Fm-3m
+
+``G1`` is the identifier for the structure file loaded earlier. Space group
+symmetry ``Fm-3m`` is preserved during the refinement. You can also set
+it to be ``auto`` to use the one automatically parsed from the structure file.
+But if space group is not provided, nor can it be determined from the structure
+file, it will be considered as ``P1`` space group.
+
+3. (Optional) Set the calculation parameters for the refinement.
+
+.. code-block:: text
+
+    set exp_ni calculation_range as 0.5 20.0 0.01  # r_min, r_max, r_step
+    set exp_ni q_range as 0.5 20.0  # q_min, q_max
+
+``exp_ni`` is the identifier for the profile file loaded earlier.
+``calculation_range`` specifies the range and step size for the calculation,
+while ``q_range`` specifies the range of Q values to be used in the refinement.
+If calculation parameters are not set, it will use the ones
+that are defined in the profile file.
 
 
-Other useful directives
------------------------
+4. Create the refinement equation.
 
-Here is how you can do menu selection  :menuselection:`Admin --> Settings` and display labels for buttons like :guilabel:`Privacy level`.
+.. code-block:: text
+
+    create equation variables s0
+    set equation as "G1*s0"
+
+``G1`` is the identifier for the structure file loaded earlier. In the
+equation, it represents the PDF data generated from the structure `G1`.
+``s0`` is created to count for the scaling factor.
+
+5. Store the results.
+
+.. code-block:: text
+
+    save to "output_results.json"
+
+The results of the refinement will be saved to a file
+named ``output_results.json``.
+
+6. List variables to be refined.
+
+.. code-block:: text
+
+    variables:
+    ---
+    - G1.a: 3.52
+    - s0: 0.4
+    - G1.Uiso_0: 0.005
+    - G1.delta2: 2
+    - qdamp: 0.04
+    - qbroad: 0.02
+    ---
+
+Only variables listed in this section will be refined during the
+execution of the macro, and the variables will also be refined in that order.
+Variables with initial values specified here will be used as the
+starting point for the refinement.
+
+.. note::
+    The naming of variables follows the format
+    ``structure_identifier.parameter``,
+    ``profile_parameter``, or
+    ``equation_parameter``.
+
+    For parameters belonging to a specific atom in the parameter,
+    the naming follows the format ``structure_identifier.parameter_atomindex``.
+    e.g. ``G1.Uiso_0`` here refers to the Uiso parameter of the first atom in
+    the structure ``G1``.
+
+    For constrained parameters, it will use the first parameter in the
+    constraint. e.g. Here, lattice parameter ``a=b=c``,
+    and ``Usio_0=Uiso_i, i=1,2,3``, ``a`` and ``Uiso_0`` are used as the
+    reference variables.
