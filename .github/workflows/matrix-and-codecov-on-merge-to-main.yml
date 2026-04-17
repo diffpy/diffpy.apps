@@ -17,5 +17,6 @@ jobs:
       project: diffpy.apps
       c_extension: false
       headless: false
+      python_versions: 3.12, 3.13
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
