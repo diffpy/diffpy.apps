@@ -29,8 +29,8 @@ def main():
 
     parser.add_argument(
         "--version",
-        action="store_true",
-        help="Show the program's version number and exit",
+        action="version",
+        version=f"diffpy.apps {__version__}",
     )
     apps_parsers = parser.add_subparsers(
         title="Available applications",

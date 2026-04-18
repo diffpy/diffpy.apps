@@ -51,6 +51,7 @@ exclude = []  # exclude packages matching these glob patterns (empty by default)
 namespaces = false  # to disable scanning PEP 420 namespaces (true by default)
 
 [project.scripts]
+"diffpy.apps" = "diffpy.apps.apps:main"
 "diffpy.app" = "diffpy.apps.apps:main"
 
 [tool.setuptools.dynamic]
