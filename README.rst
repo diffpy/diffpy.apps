@@ -36,9 +36,10 @@
 .. |Tracking| image:: https://img.shields.io/badge/issue_tracking-github-blue
         :target: https://github.com/diffpy/diffpy.apps/issues
 
-User applications to help with tasks using diffpy packages
+User applications to help with tasks using diffpy packages. Currently it
+contains
 
-* LONGER DESCRIPTION HERE
+- `runmacro`: A runner for DiffPy macro files.
 
 For more information about the diffpy.apps library, please consult our `online documentation <https://diffpy.github.io/diffpy.apps>`_.
 
@@ -63,7 +64,7 @@ To add "conda-forge" to the conda channels, run the following in a terminal. ::
 We want to install our packages in a suitable conda environment.
 The following creates and activates a new environment named ``diffpy.apps_env`` ::
 
-        conda create -n diffpy.apps_env diffpy.apps
+        conda create -n diffpy.apps_env diffpy.apps python=3.13
         conda activate diffpy.apps_env
 
 The output should print the latest version displayed on the badges above.
