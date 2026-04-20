@@ -1,5 +1,4 @@
 import numpy as np
-
 from diffpy.srfit.fitbase import FitContribution, FitRecipe, Profile
 from diffpy.srfit.pdf import PDFGenerator, PDFParser
 from diffpy.srfit.structure import constrainAsSpaceGroup

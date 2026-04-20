@@ -45,6 +45,9 @@ Value:
 RawValue:
     /[^\s]+/
 ;
+
+
+Comment: /#[^\n]*/;
 """
 
 

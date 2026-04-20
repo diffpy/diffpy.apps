@@ -163,6 +163,18 @@ variables:
             },
             {},
         ),
+        # C10: comments. Expect no error is raised by textx
+        (
+            f"""
+# This is a comment
+load structure G1 from "{_STRUCTURE_PATH}"
+""",
+            {
+                "initialize_structures.structure_paths": _STRUCTURE_PATH,
+                "initialize_structures.names": ["G1"],
+            },
+            {"G1": "structure"},
+        ),
     ],
 )
 def test_command_processor(
