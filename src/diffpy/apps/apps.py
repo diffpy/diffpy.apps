@@ -48,14 +48,13 @@ def main():
         help="Path to the  `<.dp-in>` macro file to be run",
     )
     runmacro_parser.set_defaults(func=runmacro)
-    # agent application
+    # agentify application
     agentify_parser = apps_parsers.add_parser(
         "agentify",
         help="Deploy diffpy.cmi agentic skills in the local environment.",
     )
     agentify_parser.add_argument(
         "--agent",
-        "-a",
         help="The agent to use for the agentic skill.",
         default="claude",
         choices=["claude", "codex"],

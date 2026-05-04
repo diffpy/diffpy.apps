@@ -99,7 +99,7 @@ def test_agentify_update():
                     "To overwrite, pass '--update' flag to update the skill"
                 ),
             )
-            # C1: Deploy again with --update flag when skill already exists
+            # C2: Deploy again with --update flag when skill already exists
             #  with a dummy file in the skill directory.
             #  Expect no error to be raised, and the skill is updated.
             dummy_file = skill_path / "dummy.txt"
