@@ -13,6 +13,7 @@ diffpy packages. This page contains the instructions for all applications
 available, including:
 
 - :ref:`runmacro`
+- :ref:`agentify`
 
 .. _runmacro:
 
@@ -149,3 +150,33 @@ starting point for the refinement.
     constraint. e.g. Here, lattice parameter ``a=b=c``,
     and ``Usio_0=Uiso_i, i=1,2,3``, ``a`` and ``Uiso_0`` are used as the
     reference variables.
+
+.. _agentify:
+Use ``agentify`` to deploy agent skills ``diffpy.cmi``
+------------------------------------------------------
+
+The ``agentify`` application allows users to deploy agentic skills in the
+local environment. To use this application, run:
+
+.. code-block:: bash
+
+    diffpy.app agentify
+
+``claude`` and ``codex`` agent skills are supported, and ``claude`` is used
+by default. To specify the agent skill, use the ``--agent`` option:
+
+.. code-block:: bash
+
+    diffpy.app agentify --agent codex
+
+To deploy the agentic skill to the system directory, use the ``--system`` flag:
+
+.. code-block:: bash
+
+    diffpy.app agentify --system
+
+To update the existing ``diffpy.cmi`` agentic skill, use the ``--update`` flag:
+
+.. code-block:: bash
+
+    diffpy.app agentify --update

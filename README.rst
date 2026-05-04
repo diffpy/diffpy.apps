@@ -40,6 +40,7 @@ User applications to help with tasks using diffpy packages. Currently it
 contains
 
 - `runmacro`: A runner for DiffPy macro files.
+- `agentify`: A deployer for diffpy.cmi agentic skills.
 
 For more information about the diffpy.apps library, please consult our `online documentation <https://diffpy.github.io/diffpy.apps>`_.
 
