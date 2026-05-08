@@ -15,7 +15,7 @@ _PROFILE_PATH = str(Path(__file__).parent / "data" / "Ni.gr")
 def test_meta_model():
     # C1: Run the same fit with pdfadapter and diffpy_cmi
     #   Expect the refined parameters to be the same within 1e-5
-    # diffpy_cmi fitting
+    #   diffpy_cmi fitting
     initial_pv_dict = {
         "s0": 0.4,
         "qdamp": 0.04,
