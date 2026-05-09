@@ -1,6 +1,6 @@
 **Added:**
 
-* No news added:
+* No news added: Fix workflow inputs.
 
 **Changed:**
 
