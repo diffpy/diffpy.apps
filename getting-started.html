@@ -1,0 +1,268 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Getting started &mdash; diffpy.apps 0.1.0rc3 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=b2b45f3d"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=cca77546"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Release notes" href="release.html" />
+    <link rel="prev" title="diffpy.apps documentation" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            diffpy.apps
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#use-runmacro-to-start-refinement-with-a-macro-file">Use <code class="docutils literal notranslate"><span class="pre">runmacro</span></code> to start refinement with a macro file</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#how-to-write-macro">How to write macro</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#use-agentify-to-deploy-agent-skills-diffpy-cmi">Use <code class="docutils literal notranslate"><span class="pre">agentify</span></code> to deploy agent skills <code class="docutils literal notranslate"><span class="pre">diffpy.cmi</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="release.html">Release notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">diffpy.apps</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Getting started</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/diffpy/diffpy.apps/blob/main/docs/source/getting-started.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="getting-started">
+<span id="index-0"></span><span id="id1"></span><h1>Getting started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code> provides user applications to help with tasks using
+diffpy packages. This page contains the instructions for all applications
+available, including:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#runmacro"><span class="std std-ref">Use runmacro to start refinement with a macro file</span></a></p></li>
+<li><p><a class="reference internal" href="#agentify"><span class="std std-ref">Use agentify to deploy agent skills diffpy.cmi</span></a></p></li>
+</ul>
+<section id="use-runmacro-to-start-refinement-with-a-macro-file">
+<span id="runmacro"></span><h2>Use <code class="docutils literal notranslate"><span class="pre">runmacro</span></code> to start refinement with a macro file<a class="headerlink" href="#use-runmacro-to-start-refinement-with-a-macro-file" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">runmacro</span></code> application allows users to execute macros written in the
+diffpy macro language.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diffpy.app<span class="w"> </span>runmacro<span class="w"> </span>&lt;macro_file.dp-in&gt;
+</pre></div>
+</div>
+<p>To follow the example,</p>
+<ol class="arabic simple">
+<li><p>download the example files from <a class="reference download internal" download="" href="_downloads/34c9cd97c2a90b2d475474c4bc8ee0d9/runmacro_example.zip"><code class="xref download docutils literal notranslate"><span class="pre">here</span></code></a></p></li>
+<li><p>extract the downloaded files and navigate to the extracted directory</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mv<span class="w"> </span>/path/to/runmacro<span class="w"> </span>runmacro_example.zip<span class="w"> </span>working_directory
+<span class="nb">cd</span><span class="w"> </span>working_directory
+unzip<span class="w"> </span>runmacro_example.zip
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>run the macro using the <code class="docutils literal notranslate"><span class="pre">runmacro</span></code> application</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diffpy.app<span class="w"> </span>runmacro<span class="w"> </span>example_macro.dp-in
+</pre></div>
+</div>
+<section id="how-to-write-macro">
+<h3>How to write macro<a class="headerlink" href="#how-to-write-macro" title="Link to this heading"></a></h3>
+<p>Let’s still use the Ni example created earlier, but this time we will
+write the macro file from scratch.</p>
+<ol class="arabic simple">
+<li><p>Prepare the structure and profile file you want to work with.</p></li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The structure file is a <code class="docutils literal notranslate"><span class="pre">.cif</span></code> file representing the atomic arrangement in
+your sample, and the profile file is a <code class="docutils literal notranslate"><span class="pre">.gr</span></code> file containing the
+experimental data.</p>
+</div>
+<p>Start the macro file with the following two lines:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>load structure G1 from &quot;path/to/structure.cif&quot;
+load profile exp_ni from &quot;path/to/profile.gr&quot;
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">G1</span></code> and <code class="docutils literal notranslate"><span class="pre">exp_ni</span></code> are the identifiers used in the macro to refer to the
+structure and profile files, respectively. Quotes <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> are must to specify
+the file paths.</p>
+<ol class="arabic simple" start="2">
+<li><p>(Optional) Declare the space group of the structure.</p></li>
+</ol>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>set G1 spacegroup as Fm-3m
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">G1</span></code> is the identifier for the structure file loaded earlier. Space group
+symmetry <code class="docutils literal notranslate"><span class="pre">Fm-3m</span></code> is preserved during the refinement. You can also set
+it to be <code class="docutils literal notranslate"><span class="pre">auto</span></code> to use the one automatically parsed from the structure file.
+But if space group is not provided, nor can it be determined from the structure
+file, it will be considered as <code class="docutils literal notranslate"><span class="pre">P1</span></code> space group.</p>
+<ol class="arabic simple" start="3">
+<li><p>(Optional) Set the calculation parameters for the refinement.</p></li>
+</ol>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>set exp_ni calculation_range as 0.5 20.0 0.01  # r_min, r_max, r_step
+set exp_ni q_range as 0.5 20.0  # q_min, q_max
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">exp_ni</span></code> is the identifier for the profile file loaded earlier.
+<code class="docutils literal notranslate"><span class="pre">calculation_range</span></code> specifies the range and step size for the calculation,
+while <code class="docutils literal notranslate"><span class="pre">q_range</span></code> specifies the range of Q values to be used in the refinement.
+If calculation parameters are not set, it will use the ones
+that are defined in the profile file.</p>
+<ol class="arabic simple" start="4">
+<li><p>Create the refinement equation.</p></li>
+</ol>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>create equation variables s0
+set equation as &quot;G1*s0&quot;
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">G1</span></code> is the identifier for the structure file loaded earlier. In the
+equation, it represents the PDF data generated from the structure <cite>G1</cite>.
+<code class="docutils literal notranslate"><span class="pre">s0</span></code> is created to count for the scaling factor.</p>
+<ol class="arabic simple" start="5">
+<li><p>Store the results.</p></li>
+</ol>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>save to &quot;output_results.json&quot;
+</pre></div>
+</div>
+<p>The results of the refinement will be saved to a file
+named <code class="docutils literal notranslate"><span class="pre">output_results.json</span></code>.</p>
+<ol class="arabic simple" start="6">
+<li><p>List variables to be refined.</p></li>
+</ol>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>variables:
+---
+- G1.a: 3.52
+- s0: 0.4
+- G1.Uiso_0: 0.005
+- G1.delta2: 2
+- qdamp: 0.04
+- qbroad: 0.02
+---
+</pre></div>
+</div>
+<p>Only variables listed in this section will be refined during the
+execution of the macro, and the variables will also be refined in that order.
+Variables with initial values specified here will be used as the
+starting point for the refinement.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The naming of variables follows the format
+<code class="docutils literal notranslate"><span class="pre">structure_identifier.parameter</span></code>,
+<code class="docutils literal notranslate"><span class="pre">profile_parameter</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">equation_parameter</span></code>.</p>
+<p>For parameters belonging to a specific atom in the parameter,
+the naming follows the format <code class="docutils literal notranslate"><span class="pre">structure_identifier.parameter_atomindex</span></code>.
+e.g. <code class="docutils literal notranslate"><span class="pre">G1.Uiso_0</span></code> here refers to the Uiso parameter of the first atom in
+the structure <code class="docutils literal notranslate"><span class="pre">G1</span></code>.</p>
+<p>For constrained parameters, it will use the first parameter in the
+constraint. e.g. Here, lattice parameter <code class="docutils literal notranslate"><span class="pre">a=b=c</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">Usio_0=Uiso_i,</span> <span class="pre">i=1,2,3</span></code>, <code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">Uiso_0</span></code> are used as the
+reference variables.</p>
+</div>
+</section>
+</section>
+<section id="use-agentify-to-deploy-agent-skills-diffpy-cmi">
+<span id="agentify"></span><h2>Use <code class="docutils literal notranslate"><span class="pre">agentify</span></code> to deploy agent skills <code class="docutils literal notranslate"><span class="pre">diffpy.cmi</span></code><a class="headerlink" href="#use-agentify-to-deploy-agent-skills-diffpy-cmi" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">agentify</span></code> application allows users to deploy agentic skills in the
+local environment. To use this application, run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diffpy.app<span class="w"> </span>agentify
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">claude</span></code> and <code class="docutils literal notranslate"><span class="pre">codex</span></code> agent skills are supported, and <code class="docutils literal notranslate"><span class="pre">claude</span></code> is used
+by default. To specify the agent skill, use the <code class="docutils literal notranslate"><span class="pre">--agent</span></code> option:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diffpy.app<span class="w"> </span>agentify<span class="w"> </span>--agent<span class="w"> </span>codex
+</pre></div>
+</div>
+<p>To deploy the agentic skill to the system directory, use the <code class="docutils literal notranslate"><span class="pre">--system</span></code> flag:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diffpy.app<span class="w"> </span>agentify<span class="w"> </span>--system
+</pre></div>
+</div>
+<p>To update the existing <code class="docutils literal notranslate"><span class="pre">diffpy.cmi</span></code> agentic skill, use the <code class="docutils literal notranslate"><span class="pre">--update</span></code> flag:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diffpy.app<span class="w"> </span>agentify<span class="w"> </span>--update
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="diffpy.apps documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="release.html" class="btn btn-neutral float-right" title="Release notes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, diffpy.apps contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
