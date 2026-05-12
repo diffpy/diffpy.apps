@@ -12,7 +12,7 @@ jobs:
     with:
       project: diffpy.apps
       c_extension: false
-      maintainer_GITHUB_username: ycexiao, sbillinge
+      maintainer_GITHUB_username: sbillinge
     secrets:
       PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
       PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
