@@ -3,7 +3,7 @@
   "author_emails": "yx2924@columbia.edu, sbillinge@ucsb.edu",
   "maintainer_names": "Yuchen Xiao, Simon Billinge",
   "maintainer_emails": "yx2924@columbia.edu, sbillinge@ucsb.edu",
-  "maintainer_github_usernames": "ycexiao, sbillinge",
+  "maintainer_github_usernames": "sbillinge",
   "contributors": "Yuchen Xiao, Simon Billinge and members of the Billinge group",
   "license_holders": "diffpy.apps contributors",
   "project_name": "diffpy.apps",
@@ -13,8 +13,8 @@
   "package_dir_name": "diffpy.apps",
   "project_short_description": "User applications to help with tasks using diffpy packages",
   "project_keywords": "diffraction, PDF, X-ray, neutron",
-  "minimum_supported_python_version": "3.12",
-  "maximum_supported_python_version": "3.14",
+  "minimum_supported_python_version": "3.11",
+  "maximum_supported_python_version": "3.13",
   "project_needs_c_code_compiled": "No",
   "project_has_gui_tests": "No"
 }
