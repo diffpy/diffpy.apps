@@ -72,6 +72,15 @@ The output should print the latest version displayed on the badges above.
 
 If the above does not work, you can use ``pip`` to download and install the latest release from
 `Python Package Index <https://pypi.python.org>`_.
+
+You still need to install some of its dependencies from ``conda`` ::
+
+        git clone https://github.com/diffpy/diffpy.apps.git
+        cd diffpy.apps
+        conda activate diffpy.apps_env
+        conda install --file requirements/conda.txt
+
+
 To install using ``pip`` into your ``diffpy.apps_env`` environment, type ::
 
         pip install diffpy.apps
