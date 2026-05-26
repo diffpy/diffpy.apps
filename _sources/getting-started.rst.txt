@@ -25,7 +25,7 @@ diffpy macro language.
 
 .. code-block:: bash
 
-    diffpy.app runmacro <macro_file.dp-in>
+    diffpy-app runmacro <macro_file.dp-in>
 
 To follow the example,
 
@@ -43,7 +43,7 @@ To follow the example,
 
 .. code-block:: bash
 
-    diffpy.app runmacro example_macro.dp-in
+    diffpy-app runmacro example_macro.dp-in
 
 How to write macro
 ~~~~~~~~~~~~~~~~~~
@@ -160,23 +160,23 @@ local environment. To use this application, run:
 
 .. code-block:: bash
 
-    diffpy.app agentify
+    diffpy-app agentify
 
 ``claude`` and ``codex`` agent skills are supported, and ``claude`` is used
 by default. To specify the agent skill, use the ``--agent`` option:
 
 .. code-block:: bash
 
-    diffpy.app agentify --agent codex
+    diffpy-app agentify --agent codex
 
 To deploy the agentic skill to the system directory, use the ``--system`` flag:
 
 .. code-block:: bash
 
-    diffpy.app agentify --system
+    diffpy-app agentify --system
 
 To update the existing ``diffpy.cmi`` agentic skill, use the ``--update`` flag:
 
 .. code-block:: bash
 
-    diffpy.app agentify --update
+    diffpy-app agentify --update

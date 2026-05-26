@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Getting started &mdash; diffpy.apps 0.0.1 documentation</title>
+  <title>Getting started &mdash; diffpy.apps 0.1.1rc0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -14,7 +14,7 @@
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=f539c95a"></script>
+      <script src="_static/documentation_options.js?v=e3d08f8f"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -95,7 +95,7 @@ available, including:</p>
 <span id="runmacro"></span><h2>Use <code class="docutils literal notranslate"><span class="pre">runmacro</span></code> to start refinement with a macro file<a class="headerlink" href="#use-runmacro-to-start-refinement-with-a-macro-file" title="Link to this heading"></a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">runmacro</span></code> application allows users to execute macros written in the
 diffpy macro language.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diffpy.app<span class="w"> </span>runmacro<span class="w"> </span>&lt;macro_file.dp-in&gt;
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diffpy-app<span class="w"> </span>runmacro<span class="w"> </span>&lt;macro_file.dp-in&gt;
 </pre></div>
 </div>
 <p>To follow the example,</p>
@@ -111,7 +111,7 @@ unzip<span class="w"> </span>runmacro_example.zip
 <ol class="arabic simple" start="3">
 <li><p>run the macro using the <code class="docutils literal notranslate"><span class="pre">runmacro</span></code> application</p></li>
 </ol>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diffpy.app<span class="w"> </span>runmacro<span class="w"> </span>example_macro.dp-in
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diffpy-app<span class="w"> </span>runmacro<span class="w"> </span>example_macro.dp-in
 </pre></div>
 </div>
 <section id="how-to-write-macro">
@@ -215,20 +215,20 @@ reference variables.</p>
 <span id="agentify"></span><h2>Use <code class="docutils literal notranslate"><span class="pre">agentify</span></code> to deploy agent skills <code class="docutils literal notranslate"><span class="pre">diffpy.cmi</span></code><a class="headerlink" href="#use-agentify-to-deploy-agent-skills-diffpy-cmi" title="Link to this heading"></a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">agentify</span></code> application allows users to deploy agentic skills in the
 local environment. To use this application, run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diffpy.app<span class="w"> </span>agentify
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diffpy-app<span class="w"> </span>agentify
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">claude</span></code> and <code class="docutils literal notranslate"><span class="pre">codex</span></code> agent skills are supported, and <code class="docutils literal notranslate"><span class="pre">claude</span></code> is used
 by default. To specify the agent skill, use the <code class="docutils literal notranslate"><span class="pre">--agent</span></code> option:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diffpy.app<span class="w"> </span>agentify<span class="w"> </span>--agent<span class="w"> </span>codex
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diffpy-app<span class="w"> </span>agentify<span class="w"> </span>--agent<span class="w"> </span>codex
 </pre></div>
 </div>
 <p>To deploy the agentic skill to the system directory, use the <code class="docutils literal notranslate"><span class="pre">--system</span></code> flag:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diffpy.app<span class="w"> </span>agentify<span class="w"> </span>--system
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diffpy-app<span class="w"> </span>agentify<span class="w"> </span>--system
 </pre></div>
 </div>
 <p>To update the existing <code class="docutils literal notranslate"><span class="pre">diffpy.cmi</span></code> agentic skill, use the <code class="docutils literal notranslate"><span class="pre">--update</span></code> flag:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diffpy.app<span class="w"> </span>agentify<span class="w"> </span>--update
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diffpy-app<span class="w"> </span>agentify<span class="w"> </span>--update
 </pre></div>
 </div>
 </section>
