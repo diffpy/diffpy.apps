@@ -6,3 +6,6 @@ mater
 
 ;; Frobenius norm used in np.linalg.norm
 fro
+
+;; "number of input arguments" used in diffpy.srfit.equation.literals.Operator
+nin

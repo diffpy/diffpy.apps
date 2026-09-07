@@ -6,3 +6,5 @@ pyyaml
 diffpy.srfit
 diffpy.srreal
 diffpy.structure
+networkx
+mcp[cli]

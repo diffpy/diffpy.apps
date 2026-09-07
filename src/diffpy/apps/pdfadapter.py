@@ -65,8 +65,8 @@ class PDFAdapter:
         """
         profile = Profile()
         parser = PDFParser()
-        parser.parseString(Path(profile_path).read_text())
-        profile.loadParsedData(parser)
+        parser.parse_file(profile_path)
+        profile.load_parsed_data(parser)
         if q_range is not None:
             profile.meta["qmin"] = q_range[0]
             profile.meta["qmax"] = q_range[1]
@@ -77,7 +77,7 @@ class PDFAdapter:
                     "xmax": calculation_range[1],
                     "dx": calculation_range[2],
                 }
-            profile.setCalculationRange(**calculation_range)
+            profile.set_calculation_range(**calculation_range)
         self.profile = profile
 
     def initialize_structures(
@@ -185,10 +185,10 @@ class PDFAdapter:
         """
         equation = equation[0] if equation is not None else None
         contribution = FitContribution("pdfcontribution")
-        contribution.setProfile(self.profile)
+        contribution.set_profile(self.profile)
         for pdfgenerator in self.pdfgenerators:
-            contribution.addProfileGenerator(pdfgenerator)
-        contribution.setEquation(equation)
+            contribution.add_profile_generator(pdfgenerator)
+        contribution.set_equation(equation)
         self.contribution = contribution
         return self.contribution
 
@@ -204,9 +204,9 @@ class PDFAdapter:
         """
 
         recipe = FitRecipe()
-        recipe.addContribution(self.contribution)
-        qdamp = recipe.newVar("qdamp", fixed=False, value=0.04)
-        qbroad = recipe.newVar("qbroad", fixed=False, value=0.02)
+        recipe.add_contribution(self.contribution)
+        qdamp = recipe.create_new_variable("qdamp", fixed=False, value=0.04)
+        qbroad = recipe.create_new_variable("qbroad", fixed=False, value=0.02)
         for i, (pdfgenerator, spacegroup) in enumerate(
             zip(self.pdfgenerators, self.spacegroups)
         ):
@@ -215,23 +215,23 @@ class PDFAdapter:
                 "delta2",
             ]:
                 par = getattr(pdfgenerator, pname)
-                recipe.addVar(
+                recipe.add_variable(
                     par, name=f"{pdfgenerator.name}_{pname}", fixed=False
                 )
-            recipe.constrain(pdfgenerator.qdamp, qdamp)
-            recipe.constrain(pdfgenerator.qbroad, qbroad)
+            recipe.add_constraint(pdfgenerator.qdamp, qdamp)
+            recipe.add_constraint(pdfgenerator.qbroad, qbroad)
             stru_parset = pdfgenerator.phase
             spacegroupparams = constrainAsSpaceGroup(stru_parset, spacegroup)
             for par in spacegroupparams.xyzpars:
-                recipe.addVar(
+                recipe.add_variable(
                     par, name=f"{pdfgenerator.name}_{par.name}", fixed=False
                 )
             for par in spacegroupparams.latpars:
-                recipe.addVar(
+                recipe.add_variable(
                     par, name=f"{pdfgenerator.name}_{par.name}", fixed=False
                 )
             for par in spacegroupparams.adppars:
-                recipe.addVar(
+                recipe.add_variable(
                     par, name=f"{pdfgenerator.name}_{par.name}", fixed=False
                 )
         recipe.fithooks[0].verbose = 0
@@ -247,7 +247,7 @@ class PDFAdapter:
             e.g. 's0' for scale factor.
         """
         for var_name in variable_names:
-            self.recipe.addVar(
+            self.recipe.add_variable(
                 getattr(self.contribution, var_name),
                 name=var_name,
                 fixed=False,
@@ -275,7 +275,7 @@ class PDFAdapter:
             Mapping from recipe variable names to new values.
         """
         for vname, vvalue in variable_name_to_value.items():
-            self.recipe._parameters[vname].setValue(vvalue)
+            self.recipe._parameters[vname].set_value(vvalue)
 
     def get_results(self):
         """Return the current fit results as a JSON-compatible
