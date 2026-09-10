@@ -9,7 +9,6 @@ from diffpy.srfit.fitbase import (
     Profile,
 )
 from diffpy.srfit.pdf import PDFParser
-from diffpy.structure import Structure
 
 
 def test_parametric_model_graph():
@@ -66,10 +65,9 @@ def test_parametric_pdf_model_parameters():
     parser.parse_file(profile_path)
     profile.load_parsed_data(parser)
     profile.set_calculation_range(xmax=20)
-    stru = Structure()
-    structure_path = "tests/data/Ni.cif"
-    stru.read(structure_path)
-    pdf_model = ParametricModelPDF("ni", structure=stru)
+    pdf_model = ParametricModelPDF(
+        "ni", structure_file_path="tests/data/Ni.cif"
+    )
     parameter_names = [
         "ni.phase.lattice.a",
         "ni.phase.Ni0.Uiso",
