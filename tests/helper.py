@@ -126,12 +126,14 @@ def run_ni_example():
 
 
 def run_multi_contribution_example():
-    ciffile_ni = Path(__file__).parent / "data/ni.cif"
-    ciffile_si = Path(__file__).parent / "data/si.cif"
-    xdata_ni = Path(__file__).parent / "data/ni-q27r60-xray.gr"
-    ndata_ni = Path(__file__).parent / "data/ni-q27r100-neutron.gr"
-    xdata_si = Path(__file__).parent / "data/si-q27r60-xray.gr"
-    xdata_sini = Path(__file__).parent / "data/si90ni10-q27r60-xray.gr"
+    ciffile_ni = str(Path(__file__).parent / "data" / "ni.cif")
+    ciffile_si = str(Path(__file__).parent / "data" / "si.cif")
+    xdata_ni = str(Path(__file__).parent / "data" / "ni-q27r60-xray.gr")
+    ndata_ni = str(Path(__file__).parent / "data" / "ni-q27r100-neutron.gr")
+    xdata_si = str(Path(__file__).parent / "data" / "si-q27r60-xray.gr")
+    xdata_sini = str(
+        Path(__file__).parent / "data" / "si90ni10-q27r60-xray.gr"
+    )
 
     def makeProfile(datafile):
         profile = Profile()

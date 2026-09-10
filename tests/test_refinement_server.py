@@ -1,9 +1,13 @@
+from pathlib import Path
+
 import numpy
 import pytest
 from helper import run_ni_example
 from mcp import Client
 
 from diffpy.apps.refinebase.refinement_server import mcp
+
+_DATA_DIR = Path(__file__).parent / "data"
 
 
 @pytest.fixture
@@ -22,7 +26,7 @@ async def test_refine_sine():
             "add_profile_from_file",
             {
                 "profile_name": "sine_profile",
-                "profile_path": "tests/data/sine.dat",
+                "profile_path": str(_DATA_DIR / "sine.dat"),
             },
         )
         assert "sine_profile" in session.profiles_dict
@@ -67,7 +71,7 @@ async def test_refine_ni():
             "add_profile_from_file",
             {
                 "profile_name": "ni_profile",
-                "profile_path": "tests/data/Ni.gr",
+                "profile_path": str(_DATA_DIR / "Ni.gr"),
             },
         )
         await mcp_client.call_tool(
@@ -90,7 +94,7 @@ async def test_refine_ni():
             "add_pdf_model",
             {
                 "model_name": "pdf",
-                "structure_file_path": "tests/data/Ni.cif",
+                "structure_file_path": str(_DATA_DIR / "Ni.cif"),
             },
         )
         await mcp_client.call_tool(

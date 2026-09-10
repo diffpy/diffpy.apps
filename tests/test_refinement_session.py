@@ -1,7 +1,11 @@
+from pathlib import Path
+
 import numpy
-from helper import run_multi_contribution_example, run_ni_example
 
 from diffpy.apps.refinebase.refinement_session import RefinementSession
+from helper import run_multi_contribution_example, run_ni_example
+
+_DATA_DIR = Path(__file__).parent / "data"
 
 
 def test_refine_sine(sine_profile):
@@ -42,7 +46,7 @@ def test_refine_ni():
     #  obtained using diffpy.srfit script
     session = RefinementSession()
     session.add_profile_from_file(
-        profile_name="ni_profile", profile_path="tests/data/Ni.gr"
+        profile_name="ni_profile", profile_path=str(_DATA_DIR / "Ni.gr")
     )
     session.set_profile_calculation_range(
         profile_name="ni_profile",
@@ -56,7 +60,7 @@ def test_refine_ni():
     )
     session.add_pdf_model(
         model_name="pdf",
-        structure_file_path="tests/data/Ni.cif",
+        structure_file_path=str(_DATA_DIR / "Ni.cif"),
     )
     session.constrain_pdf_model_space_group_symmetry(
         model_name="pdf", space_group="Fm-3m"
@@ -149,19 +153,19 @@ def test_refine_ni():
 def test_refine_multi_contribution():
     session = RefinementSession()
     session.add_profile_from_file(
-        profile_path="tests/data/ni-q27r60-xray.gr",
+        profile_path=str(_DATA_DIR / "ni-q27r60-xray.gr"),
         profile_name="ni_xray",
     )
     session.add_profile_from_file(
-        profile_path="tests/data/ni-q27r100-neutron.gr",
+        profile_path=str(_DATA_DIR / "ni-q27r100-neutron.gr"),
         profile_name="ni_neutron",
     )
     session.add_profile_from_file(
-        profile_path="tests/data/si-q27r60-xray.gr",
+        profile_path=str(_DATA_DIR / "si-q27r60-xray.gr"),
         profile_name="si_xray",
     )
     session.add_profile_from_file(
-        profile_path="tests/data/si90ni10-q27r60-xray.gr",
+        profile_path=str(_DATA_DIR / "si90ni10-q27r60-xray.gr"),
         profile_name="total_xray",
     )
     session.set_profile_calculation_range(profile_name="ni_xray", xmax=20)
@@ -169,9 +173,8 @@ def test_refine_multi_contribution():
     session.set_profile_calculation_range(profile_name="si_xray", xmax=20)
     session.set_profile_calculation_range(profile_name="total_xray", xmax=20)
     session.add_pdf_model(
-        structure_file_path="tests/data/ni.cif",
+        structure_file_path=str(_DATA_DIR / "Ni.cif"),
         model_name="pdf_ni",
-        # structure_lib="PyObjcryst",
     )
     session.constrain_pdf_model_space_group_symmetry("pdf_ni")
     session.add_pdf_model(
@@ -183,7 +186,7 @@ def test_refine_multi_contribution():
         model_name="pdf_ni_partial",
     )
     session.add_pdf_model(
-        structure_file_path="tests/data/si.cif",
+        structure_file_path=str(_DATA_DIR / "si.cif"),
         model_name="pdf_si",
         structure_lib="PyObjcryst",
     )
