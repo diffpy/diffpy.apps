@@ -126,7 +126,7 @@ def run_ni_example():
 
 
 def run_multi_contribution_example():
-    ciffile_ni = str(Path(__file__).parent / "data" / "ni.cif")
+    ciffile_ni = str(Path(__file__).parent / "data" / "Ni.cif")
     ciffile_si = str(Path(__file__).parent / "data" / "si.cif")
     xdata_ni = str(Path(__file__).parent / "data" / "ni-q27r60-xray.gr")
     ndata_ni = str(Path(__file__).parent / "data" / "ni-q27r100-neutron.gr")
@@ -212,9 +212,3 @@ def run_multi_contribution_example():
         name: par.value for name, par in recipe._parameters.items()
     }
     return diffpy_pv_dict
-
-
-if __name__ == "__main__":
-    # diffpy_pv_dict = run_ni_example()
-    diffpy_pv_dict = run_multi_contribution_example()
-    print(diffpy_pv_dict)

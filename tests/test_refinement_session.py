@@ -1,9 +1,9 @@
 from pathlib import Path
 
 import numpy
+from helper import run_multi_contribution_example, run_ni_example
 
 from diffpy.apps.refinebase.refinement_session import RefinementSession
-from helper import run_multi_contribution_example, run_ni_example
 
 _DATA_DIR = Path(__file__).parent / "data"
 
@@ -268,8 +268,6 @@ def test_refine_multi_contribution():
             multi_contribution_refined_parameters[cmi_name],
             rtol=1e-2,
         )
-    # pdf_ni uses the Diffpy structure library (Uiso), while the CMI
-    # reference script uses PyObjcryst (Biso) for both phases, so convert.
     assert numpy.isclose(
         session.get_variable("pdf_ni.phase.Ni0.Uiso")["value"]
         * 8
