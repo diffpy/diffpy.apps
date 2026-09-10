@@ -1,48 +1,58 @@
-import numpy as np
+from pathlib import Path
 
-from diffpy.srfit.fitbase import FitContribution, FitRecipe, Profile
+import numpy as np
+from pyobjcryst import loadCrystal
+from scipy.optimize import least_squares, leastsq
+
+from diffpy.srfit.fitbase import (
+    FitContribution,
+    FitRecipe,
+    Profile,
+)
 from diffpy.srfit.pdf import PDFGenerator, PDFParser
 from diffpy.srfit.structure import constrainAsSpaceGroup
 from diffpy.structure.parsers import getParser
 
 
-def make_cmi_recipe(cif_path, dat_path, variable_values={}):
-    """Creates and returns a diffpy.cmi Fit Recipe object.
-
-    Parameters
-    ----------
-    cif_path :  str
-        The full path to the structure CIF file to load.
-    dat_path :  str
-        The full path to the PDF data to be fit.
-    variable_values : dict,
-        The dictionary of variable values to initialize the
-        FitRecipe.
-
-    Returns
-    ----------
-    recipe : FitRecipe
-        The created FitRecipe.
-    """
-    PDF_RMIN = variable_values.get("xmin", 1.5)
-    PDF_RMAX = variable_values.get("xmax", 50)
-    PDF_RSTEP = variable_values.get("dx", 0.01)
-    QMAX = variable_values.get("qmax", 25)
-    QMIN = variable_values.get("qmin", 0.1)
-    SCALE_I = variable_values.get("s0", 0.4)
-    CUBICLAT_I = variable_values.get("G1_a", 3.52)
-    UISO_I = variable_values.get("G1_Uiso_0", 0.005)
-    DELTA2_I = variable_values.get("G1_delta2", 2)
-    QDAMP_I = variable_values.get("qdamp", 0.04)
-    QBROAD_I = variable_values.get("qbroad", 0.02)
+def run_ni_example():
+    structure_path = str(Path(__file__).parent / "data" / "Ni.cif")
+    profile_path = str(Path(__file__).parent / "data" / "Ni.gr")
+    initial_pv_dict = {
+        "s0": 0.4,
+        "qdamp": 0.04,
+        "qbroad": 0.02,
+        "G1_a": 3.52,
+        "G1_delta2": 2,
+        "G1_Uiso_0": 0.005,
+    }
+    variables_to_refine = [
+        "G1_a",
+        "s0",
+        "G1_Uiso_0",
+        "G1_delta2",
+        "qdamp",
+        "qbroad",
+    ]
+    PDF_RMIN = 1.5
+    # PDF_RMAX = 50
+    PDF_RMAX = 20  # reduced for testing purposes
+    PDF_RSTEP = 0.01
+    QMAX = 25
+    QMIN = 0.1
+    SCALE_I = 0.4
+    CUBICLAT_I = 3.52
+    UISO_I = 0.005
+    DELTA2_I = 2
+    QDAMP_I = 0.04
+    QBROAD_I = 0.02
     RUN_PARALLEL = True
 
     p_cif = getParser("cif")
-    stru1 = p_cif.parseFile(cif_path)
+    stru1 = p_cif.parseFile(structure_path)
     sg = p_cif.spacegroup.short_name
     profile = Profile()
     parser = PDFParser()
-    parser.parseFile(dat_path)
+    parser.parseFile(profile_path)
     profile.loadParsedData(parser)
     profile.setCalculationRange(xmin=PDF_RMIN, xmax=PDF_RMAX, dx=PDF_RSTEP)
     generator_crystal1 = PDFGenerator("G1")
@@ -97,4 +107,108 @@ def make_cmi_recipe(cif_path, dat_path, variable_values={}):
         name="qbroad",
         value=QBROAD_I,
     )
-    return recipe
+    recipe.fithooks[0].verbose = 0
+    for init_name, init_value in initial_pv_dict.items():
+        if init_name in recipe._parameters:
+            recipe._parameters[init_name].value = init_value
+    recipe.fix("all")
+    for var_name in variables_to_refine:
+        recipe.free(var_name)
+        least_squares(
+            recipe.residual,
+            recipe.values,
+            x_scale="jac",
+        )
+    diffpy_pv_dict = {}
+    for pname, parameter in recipe._parameters.items():
+        diffpy_pv_dict[pname] = parameter.value
+    return diffpy_pv_dict
+
+
+def run_multi_contribution_example():
+    ciffile_ni = str(Path(__file__).parent / "data" / "Ni.cif")
+    ciffile_si = str(Path(__file__).parent / "data" / "si.cif")
+    xdata_ni = str(Path(__file__).parent / "data" / "ni-q27r60-xray.gr")
+    ndata_ni = str(Path(__file__).parent / "data" / "ni-q27r100-neutron.gr")
+    xdata_si = str(Path(__file__).parent / "data" / "si-q27r60-xray.gr")
+    xdata_sini = str(
+        Path(__file__).parent / "data" / "si90ni10-q27r60-xray.gr"
+    )
+
+    def makeProfile(datafile):
+        profile = Profile()
+        parser = PDFParser()
+        parser.parse_file(datafile)
+        profile.load_parsed_data(parser)
+        profile.set_calculation_range(xmax=20)
+        return profile
+
+    def makeContribution(name, generator, profile):
+        contribution = FitContribution(name)
+        contribution.add_profile_generator(generator)
+        contribution.set_profile(profile, xname="r")
+        return contribution
+
+    xprofile_ni = makeProfile(xdata_ni)
+    xprofile_si = makeProfile(xdata_si)
+    nprofile_ni = makeProfile(ndata_ni)
+    xprofile_sini = makeProfile(xdata_sini)
+    xgenerator_ni = PDFGenerator("xG_ni")
+    stru = loadCrystal(ciffile_ni)
+    xgenerator_ni.setStructure(stru)
+    phase_ni = xgenerator_ni.phase
+    xgenerator_si = PDFGenerator("xG_si")
+    stru = loadCrystal(ciffile_si)
+    xgenerator_si.setStructure(stru)
+    phase_si = xgenerator_si.phase
+    ngenerator_ni = PDFGenerator("nG_ni")
+    ngenerator_ni.setPhase(phase_ni)
+    xgenerator_sini_ni = PDFGenerator("xG_sini_ni")
+    xgenerator_sini_ni.setPhase(phase_ni)
+    xgenerator_sini_si = PDFGenerator("xG_sini_si")
+    xgenerator_sini_si.setPhase(phase_si)
+    xcontribution_ni = makeContribution("xnickel", xgenerator_ni, xprofile_ni)
+    xcontribution_si = makeContribution("xsilicon", xgenerator_si, xprofile_si)
+    ncontribution_ni = makeContribution("nnickel", ngenerator_ni, nprofile_ni)
+    xcontribution_sini = makeContribution(
+        "xsini", xgenerator_sini_ni, xprofile_sini
+    )
+    xcontribution_sini.add_profile_generator(xgenerator_sini_si)
+    xcontribution_sini.set_equation("scale * (xG_sini_ni +  xG_sini_si)")
+    xcontribution_ni.set_residual_equation("resv")
+    xcontribution_si.set_residual_equation("resv")
+    ncontribution_ni.set_residual_equation("resv")
+    xcontribution_sini.set_residual_equation("resv")
+    recipe = FitRecipe()
+    recipe.add_contribution(xcontribution_ni)
+    recipe.add_contribution(xcontribution_si)
+    recipe.add_contribution(ncontribution_ni)
+    recipe.add_contribution(xcontribution_sini)
+    for par in phase_ni.sgpars:
+        recipe.add_variable(par, name=par.name + "_ni")
+    delta2_ni = recipe.create_new_variable("delta2_ni", 2.5)
+    recipe.add_constraint(xgenerator_ni.delta2, delta2_ni)
+    recipe.add_constraint(ngenerator_ni.delta2, delta2_ni)
+    recipe.add_constraint(xgenerator_sini_ni.delta2, delta2_ni)
+    for par in phase_si.sgpars:
+        recipe.add_variable(par, name=par.name + "_si")
+    delta2_si = recipe.create_new_variable("delta2_si", 2.5)
+    recipe.add_constraint(xgenerator_si.delta2, delta2_si)
+    recipe.add_constraint(xgenerator_sini_si.delta2, delta2_si)
+    recipe.add_variable(xgenerator_ni.scale, name="xscale_ni")
+    recipe.add_variable(xgenerator_si.scale, name="xscale_si")
+    recipe.add_variable(ngenerator_ni.scale, name="nscale_ni")
+    recipe.add_variable(xcontribution_sini.scale, 1.0, "xscale_sini")
+    recipe.create_new_variable("pscale_sini_ni", 0.8)
+    recipe.add_constraint(xgenerator_sini_ni.scale, "pscale_sini_ni")
+    recipe.add_constraint(xgenerator_sini_si.scale, "1 - pscale_sini_ni")
+    xgenerator_ni.qdamp.value = 0.055
+    xgenerator_si.qdamp.value = 0.051
+    ngenerator_ni.qdamp.value = 0.030
+    xgenerator_sini_ni.qdamp.value = 0.052
+    xgenerator_sini_si.qdamp.value = 0.052
+    leastsq(recipe.residual, recipe.get_values())
+    diffpy_pv_dict = {
+        name: par.value for name, par in recipe._parameters.items()
+    }
+    return diffpy_pv_dict

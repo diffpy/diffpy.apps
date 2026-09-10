@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numpy
 import pytest
 
@@ -9,7 +11,8 @@ from diffpy.srfit.fitbase import (
     Profile,
 )
 from diffpy.srfit.pdf import PDFParser
-from diffpy.structure import Structure
+
+_DATA_DIR = Path(__file__).parent / "data"
 
 
 def test_parametric_model_graph():
@@ -60,16 +63,15 @@ def test_parametric_model_evaluation(nested_sine_model, A, a, x, expected):
 def test_parametric_pdf_model_parameters():
     # C1: Create a ParametricModelPDF for Ni
     # Expect the model to be initialized correctly with all parameters
-    profile_path = "tests/data/Ni.gr"
+    profile_path = str(_DATA_DIR / "Ni.gr")
     profile = Profile()
     parser = PDFParser()
     parser.parse_file(profile_path)
     profile.load_parsed_data(parser)
     profile.set_calculation_range(xmax=20)
-    stru = Structure()
-    structure_path = "tests/data/Ni.cif"
-    stru.read(structure_path)
-    pdf_model = ParametricModelPDF("ni", structure=stru)
+    pdf_model = ParametricModelPDF(
+        "ni", structure_file_path=str(_DATA_DIR / "Ni.cif")
+    )
     parameter_names = [
         "ni.phase.lattice.a",
         "ni.phase.Ni0.Uiso",

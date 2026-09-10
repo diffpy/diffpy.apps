@@ -1,14 +1,16 @@
 from pathlib import Path
 
 import numpy
+from helper import run_ni_example
 from scipy.optimize import least_squares
 
 from diffpy.apps.pdfadapter import PDFAdapter
 
 
-def test_pdfadapter(ni_refined_parameters):
+def test_pdfadapter():
     # C1: Run the same fit with pdfadapter and diffpy_cmi
     #   Expect the refined parameters to be the same within 1e-5
+    ni_refined_parameters = run_ni_example()
     # diffpy_cmi fitting
     structure_path = Path(__file__).parent / "data" / "Ni.cif"
     profile_path = Path(__file__).parent / "data" / "Ni.gr"
@@ -30,7 +32,7 @@ def test_pdfadapter(ni_refined_parameters):
     ]
     adapter = PDFAdapter()
     adapter.initialize_profile(
-        str(profile_path), q_range=(0.1, 25), calculation_range=(1.5, 50, 0.01)
+        str(profile_path), q_range=(0.1, 25), calculation_range=(1.5, 20, 0.01)
     )
     adapter.initialize_structures([str(structure_path)])
     adapter.initialize_contribution(equation=["s0*G1"])

@@ -92,8 +92,8 @@ class RefinementSession:
     def set_profile_calculation_range(
         self,
         profile_name: str,
-        xmin,
-        xmax,
+        xmin=None,
+        xmax=None,
         dx=None,
     ):
         profile = self.profiles_dict[profile_name]
@@ -104,29 +104,62 @@ class RefinementSession:
         profile = self.profiles_dict[profile_name]
         profile.set_calculation_points(x)
 
-    def add_model_from_equation(self, model_name: str, equation_str):
+    def add_equation_model(
+        self, model_name: str, equation_str=None, from_model_name=None
+    ):
         from diffpy.apps.refinebase.parametric_model import (
             ParametricModelEquation,
         )
 
         if model_name in self.models_dict:
             raise ValueError(f"Model with ID {model_name} already exists.")
-        model = ParametricModelEquation(model_name, equation_str)
+        if equation_str is not None:
+            model = ParametricModelEquation(model_name, equation_str)
+        elif from_model_name is not None:
+            if from_model_name not in self.models_dict:
+                raise ValueError(
+                    f"Model with ID {from_model_name} does not exist."
+                )
+            model = ParametricModelEquation(
+                model_name, from_model_name=from_model_name
+            )
+        else:
+            raise ValueError(
+                "Either equation_str or from_model must be provided."
+            )
         self.models_dict[model_name] = model
 
-    def add_model_from_structure_file(
-        self, model_name: str, structure_file_path: str
+    def add_pdf_model(
+        self,
+        model_name: str,
+        structure_file_path=None,
+        from_model_name=None,
+        structure_lib="Diffpy",
     ):
         from diffpy.apps.refinebase.parametric_model import (
             ParametricModelPDF,
         )
-        from diffpy.structure import Structure
 
         if model_name in self.models_dict:
             raise ValueError(f"Model with ID {model_name} already exists.")
-        stru = Structure()
-        stru.read(structure_file_path)
-        pdf_model = ParametricModelPDF(model_name, structure=stru)
+        if structure_file_path is not None:
+            pdf_model = ParametricModelPDF(
+                model_name,
+                structure_file_path=structure_file_path,
+                structure_lib=structure_lib,
+            )
+        elif from_model_name is not None:
+            if from_model_name not in self.models_dict:
+                raise ValueError(
+                    f"Model with ID {from_model_name} does not exist."
+                )
+            pdf_model = ParametricModelPDF(
+                model_name, from_model_name=self.models_dict[from_model_name]
+            )
+        else:
+            raise ValueError(
+                "Either structure_file_path or from_model must be provided."
+            )
         self.models_dict[model_name] = pdf_model
 
     def remove_model(self, model_name: str):
@@ -135,19 +168,25 @@ class RefinementSession:
         del self.models_dict[model_name]
 
     def combine_models(
-        self, parent_model_name: str, child_model_name: str, symbol: str = None
+        self,
+        parent_model_name: str,
+        child_model_names: list[str],
+        symbol: str = None,
     ):
         if parent_model_name not in self.models_dict:
             raise ValueError(
                 f"Parent model '{parent_model_name}' not found in the session."
             )
-        if child_model_name not in self.models_dict:
-            raise ValueError(
-                f"Child model '{child_model_name}' not found in the session."
-            )
+        for child_model_name in child_model_names:
+            if child_model_name not in self.models_dict:
+                raise ValueError(
+                    f"Child model '{child_model_name}' not "
+                    "found in the session."
+                )
         parent_model = self.models_dict[parent_model_name]
-        child_model = self.models_dict[child_model_name]
-        parent_model.register_submodel(child_model, symbol)
+        for child_model_name in child_model_names:
+            child_model = self.models_dict[child_model_name]
+            parent_model.register_submodel(child_model, symbol)
 
     @check_model_exists
     def set_model_equation(self, model_name: str, equation: str):
@@ -212,7 +251,7 @@ class RefinementSession:
 
     @check_model_exists
     def constrain_pdf_model_space_group_symmetry(
-        self, model_name, space_group
+        self, model_name, space_group=None
     ):
         model = self.models_dict[model_name]
         if not isinstance(model, ParametricModelPDF):
@@ -221,15 +260,25 @@ class RefinementSession:
             )
         model.constrain_symmetry(space_group)
 
-    def set_variable_value(self, variable_name, value):
-        variable = self.get_variable(variable_name)["obj"]
-        variable.value = value
+    def set_variables_value(self, name_value_dict):
+        for variable_name, value in name_value_dict.items():
+            variable = self.get_variable(variable_name)["obj"]
+            variable.value = value
 
     def get_variable(self, variable_name):
         objs = variable_name.split(".")
-        if objs[0] not in self.models_dict:
-            raise ValueError(f"Model '{objs[0]}' not found in the session.")
-        if variable_name not in self.models_dict[objs[0]].parameters:
+        if (
+            objs[0] not in self.models_dict
+            or variable_name not in self.models_dict[objs[0]].parameters
+        ):
+            for recipe in self.recipes_dict.values():
+                if variable_name in recipe._parameters:
+                    variable_obj = recipe._parameters[variable_name]
+                    return {
+                        "name": variable_name,
+                        "value": variable_obj.value,
+                        "obj": variable_obj,
+                    }
             raise ValueError(
                 f"Variable '{variable_name}' not found in "
                 f"the model '{objs[0]}'."
@@ -244,50 +293,82 @@ class RefinementSession:
 
     def _solve(
         self,
+        name,
         profiles,
         models,
-        variables,
-        id=uuid.uuid4(),
+        variable_names,
+        constraints=None,
+        restraints=None,
         weights=None,
-        initial_values=None,
+        residual_equations=None,
         metas=None,
+        verbose_iterations=0,
     ):
+        # NOTE: restraints to be implemented
         recipe = FitRecipe()
-        self.recipes_dict[id] = recipe
+        self.recipes_dict[name] = recipe
         if weights is None:
-            weights = numpy.ones(len(profiles)) / len(profiles)
+            weights = numpy.ones(len(profiles))
+        if residual_equations is None:
+            residual_equations = ["chiv"] * len(profiles)
         if metas is not None:
             for i in range(len(metas)):
                 profiles[i].meta.update(metas[i])
         for i in range(len(models)):
             if isinstance(models[i], ParametricModelEquation):
                 models[i].set_profile(profiles[i])
-                recipe.add_contribution(
-                    models[i]._contribution, weight=weights[i]
-                )
+                models[i].calc_obj.set_residual_equation(residual_equations[i])
+                recipe.add_contribution(models[i].calc_obj, weight=weights[i])
             elif isinstance(models[i], ParametricModelPDF):
                 contribution = FitContribution(models[i].name)
                 contribution.add_profile_generator(models[i].calc_obj)
                 contribution.set_profile(profiles[i])
+                contribution.set_residual_equation(residual_equations[i])
                 models[i].set_profile(profiles[i])
                 recipe.add_contribution(contribution, weight=weights[i])
 
-        # Add variables
-        if initial_values is not None:
-            for var, val in zip(variables, initial_values):
-                var.value = val
-        if len(set([var.name for var in variables])) != len(variables):
-            raise ValueError(
-                "Duplicate variable names found. Please ensure that "
-                "each variable to be refined has a unique name."
-            )
-        for var in variables:
-            recipe.add_variable(var)
-        # Refine the recipe
+        if constraints:
+            for var_name, value in constraints[0].items():
+                if var_name not in recipe._parameters:
+                    recipe.create_new_variable(var_name, value)
+            for constraint_name, constraint_eq_str in constraints[1].items():
+                constraint_var = self.get_variable(constraint_name)["obj"]
+                recipe.add_constraint(constraint_var, constraint_eq_str)
+
+        variables = [self.get_variable(name)["obj"] for name in variable_names]
+        variable_names = ["_".join(name.split(".")) for name in variable_names]
+        for i, var in enumerate(variables):
+            if var in recipe._parameters.values():
+                continue
+            recipe.add_variable(var, name=variable_names[i])
+
+        residual_fn = recipe.residual
+        if verbose_iterations:
+            call_counter = {"n": 0}
+
+            def _verbose_residual(p, _orig=residual_fn, _counter=call_counter):
+                r = _orig(p)
+                _counter["n"] += 1
+                if _counter["n"] <= verbose_iterations:
+                    names = recipe.getNames()
+                    print(f"--- solve() call {_counter['n']} ---")
+                    for pname, pval in zip(names, p):
+                        print(f"    {pname} = {pval}")
+                    print(
+                        "    sum(residual**2) = "
+                        f"{numpy.sum(numpy.asarray(r) ** 2):.6f}"
+                    )
+                return r
+
+            residual_fn = _verbose_residual
+
         recipe.fix("all")
-        for i in range(len(variables)):
-            recipe.free(variables[i].name)
-            least_squares(recipe.residual, recipe.getValues(), x_scale="jac")
+        for i in range(len(variable_names)):
+            recipe.free(variable_names[i])
+            least_squares(
+                recipe.residual,
+                recipe.getValues(),
+            )
         return FitResults(recipe).get_results_string()
 
     def solve(
@@ -295,10 +376,14 @@ class RefinementSession:
         profile_names,
         model_names,
         variable_names,
-        id=None,
+        residual_equations=None,
+        constraints=None,
+        restraints=None,
+        name=uuid.uuid4(),
         weights=None,
-        initial_values=None,
         metas=None,
+        include_sgpars=False,
+        verbose_iterations=0,
     ):
         profiles = []
         for profile_name in profile_names:
@@ -316,18 +401,25 @@ class RefinementSession:
                 )
             models.append(self.models_dict[model_name])
 
-        variables = []
-        for variable_name in variable_names:
-            variables.append(self.get_variable(variable_name)["obj"])
+        if include_sgpars:
+            for model in models:
+                if isinstance(model, ParametricModelPDF):
+                    for sgpar_name in model.sgpar_names:
+                        if sgpar_name in variable_names:
+                            continue
+                        variable_names.append(sgpar_name)
 
         return self._solve(
             profiles=profiles,
             models=models,
-            variables=variables,
-            id=id,
+            variable_names=variable_names,
+            residual_equations=residual_equations,
+            constraints=constraints,
+            restraints=restraints,
+            name=name,
             weights=weights,
-            initial_values=initial_values,
             metas=metas,
+            verbose_iterations=verbose_iterations,
         )
 
     def plot(self):

@@ -16,7 +16,7 @@ def refine_general():
 1. Load the profile
 2. Ensure the profile's meta is consistent with the experiment settings.
 3. Add the parametric model
-4. Check the tunable independent parameters
+4. Check the tunable independent parameters by listing them.
 5. Initialize necessary parameters
 6. Perform the refinement
 """
@@ -34,7 +34,7 @@ to set up the PDF model.
     spacegroup symmetry.
 5. Add another parametric equation model if needed to consider
 additional factors, e.g. scale, and combine them with the PDF model.
-6. Check the tunable independent parameters
+6. Check the tunable independent parameters by listing them.
 7. Initialize necessary parameters
 8. Perform the refinement
 """
@@ -80,8 +80,8 @@ async def set_profile_calculation_range(
     profile_name: Annotated[
         str, "Name of the profile to set the calculation range for"
     ],
-    xmin: Annotated[float, "Start of the calculation range"],
-    xmax: Annotated[float, "End of the calculation range"],
+    xmin: Annotated[float, "Start of the calculation range"] = None,
+    xmax: Annotated[float, "End of the calculation range"] = None,
     dx: Annotated[float, "Step size for the calculation range"] = None,
 ) -> str:
     """Set the calculation range for a profile in the refinement session."""
@@ -122,25 +122,42 @@ async def remove_profile(
 
 
 @mcp.tool()
-async def add_model_from_equation(
-    equation_str: Annotated[str, "Equation for the parametric model"],
+async def add_equation_model(
     model_name: Annotated[str, "Name of the parametric model"] = uuid.uuid4(),
+    equation_str: Annotated[str, "Equation for the parametric model"] = None,
+    from_model_name: Annotated[
+        str, "Name of the existing model to base the new model on"
+    ] = None,
 ) -> str:
-    """Add an equation-based parametric model to the refinement session."""
-    session.add_model_from_equation(
-        equation_str=equation_str, model_name=model_name
+    """Add an equation-based parametric model to the refinement session.
+
+    Only one of `equation_str` or `from_model_name` should be provided.
+    """
+    session.add_equation_model(
+        equation_str=equation_str,
+        model_name=model_name,
+        from_model_name=from_model_name,
     )
     return f"Model {model_name} added successfully."
 
 
 @mcp.tool()
-async def add_model_from_structure_file(
-    structure_file_path: Annotated[str, "Path to the structure file"],
+async def add_pdf_model(
     model_name: Annotated[str, "Name of the parametric model"] = uuid.uuid4(),
+    structure_file_path: Annotated[str, "Path to the structure file"] = None,
+    from_model_name: Annotated[
+        str, "Name of the existing model to base the new model on"
+    ] = None,
+    structure_lib: Annotated[
+        str, "Structure library to use, either 'Diffpy' or 'PyObjcryst'"
+    ] = "Diffpy",
 ) -> str:
     """Add a structure-file-based parametric model to the session."""
-    session.add_model_from_structure_file(
-        structure_file_path=structure_file_path, model_name=model_name
+    session.add_pdf_model(
+        model_name=model_name,
+        structure_file_path=structure_file_path,
+        from_model_name=from_model_name,
+        structure_lib=structure_lib,
     )
     return f"Model {model_name} added successfully."
 
@@ -153,20 +170,6 @@ async def set_model_equation(
     """Set the equation for an existing parametric model in the session."""
     session.set_model_equation(model_name=model_name, equation=equation)
     return f"Equation for model {model_name} set successfully."
-
-
-@mcp.tool()
-async def set_model_residual_equation(
-    model_name: Annotated[str, "Name of the parametric model"],
-    residual_equation: Annotated[
-        str, "New residual equation for the parametric model"
-    ],
-) -> str:
-    """Set the residual equation for an existing parametric model."""
-    session.set_model_residual_equation(
-        model_name=model_name, residual_equation=residual_equation
-    )
-    return f"Residual equation for model {model_name} set successfully."
 
 
 @mcp.tool()
@@ -225,12 +228,19 @@ async def remove_model(
 @mcp.tool()
 async def constrain_pdf_model_space_group_symmetry(
     model_name: Annotated[str, "Name of the parametric model"],
-    space_group: Annotated[str, "Space group to constrain the model to"],
+    space_group: Annotated[
+        str, "Space group to constrain the model to"
+    ] = None,
 ) -> str:
-    """Constrain a parametric model to a specific space group symmetry."""
+    """Constrain a parametric model to a specific space group symmetry.
+
+    If no space group is provided, the model will be constrained to
+    its current space group parsed from its structure.
+    """
     session.constrain_pdf_model_space_group_symmetry(model_name, space_group)
     return (
-        f"Model {model_name} constrained to space group {space_group} "
+        f"Model {model_name} constrained to space group "
+        f"{session.models_dict[model_name].space_group_symbol} "
         f"successfully."
     )
 
@@ -250,7 +260,9 @@ async def list_models() -> list[str]:
 @mcp.tool()
 async def combine_models(
     parent_model_name: Annotated[str, "Name of the parent parametric model"],
-    child_model_name: Annotated[str, "Name of the child parametric model"],
+    child_model_names: Annotated[
+        list[str], "Names of the child parametric models"
+    ],
     symbol: Annotated[
         str, "Symbol to use for child model in the parent model's equation"
     ],
@@ -258,24 +270,25 @@ async def combine_models(
     """
     Combine two parametric models by registering the child to the parent model.
     """
-    session.combine_models(parent_model_name, child_model_name, symbol)
+    session.combine_models(parent_model_name, child_model_names, symbol)
     return (
         f"Models {parent_model_name} and "
-        f"{child_model_name} combined successfully."
+        f"{child_model_names} combined successfully."
     )
 
 
 @mcp.tool()
-async def set_variable_value(
-    variable_name: Annotated[str, "Name of the variable to set"],
-    value: Annotated[float, "Value to set for the variable"],
+async def set_variables_value(
+    name_value_dict: Annotated[
+        dict, "Mapping of variable names to the values to set them to"
+    ],
 ) -> str:
     """
     Set the value of a specific variable in a parametric model.
     """
-    session.set_variable_value(variable_name, value)
+    session.set_variables_value(name_value_dict)
 
-    return f"Variable '{variable_name}' is set to {value}."
+    return f"Variables '{name_value_dict}' are set."
 
 
 @mcp.tool()
@@ -316,6 +329,23 @@ async def list_model_parameters(
 
 
 @mcp.tool()
+async def list_recipe_parameters(
+    recipe_name: Annotated[str, "Name of the recipe"],
+) -> str:
+    """
+    List all parameters of a specific recipe.
+    """
+    if recipe_name not in session.recipes_dict:
+        raise ValueError(f"Recipe with ID {recipe_name} does not exist.")
+
+    recipe = session.recipes_dict[recipe_name]
+    parameters = {
+        node_id: par.value for node_id, par in recipe._parameters.items()
+    }
+    return f"Parameters for recipe '{recipe_name}': {parameters}"
+
+
+@mcp.tool()
 async def solve(
     profile_names: Annotated[
         list[str], "List of profile IDs to use in the refinement"
@@ -324,10 +354,25 @@ async def solve(
         list[str], "List of model IDs to use in the refinement"
     ],
     variable_names: Annotated[list[str], "List of variable names to refine"],
-    weights: Annotated[list[float], "List of weights for each profile"] = None,
-    initial_values: Annotated[
-        list[float], "List of initial values for each variable"
+    residual_equations: Annotated[
+        list[str], "List of residual equations for each profile"
     ] = None,
+    constraints: Annotated[
+        list[str], "List of constraints to apply during the refinement"
+    ] = None,
+    restraints: Annotated[
+        list[str], "List of restraints to apply during the refinement"
+    ] = None,
+    name: Annotated[str, "Name of the refinement session"] = None,
+    weights: Annotated[
+        list[float], "List of weights for each refinement profile"
+    ] = None,
+    metas: Annotated[
+        list[dict], "List of metadata dictionaries for each profile"
+    ] = None,
+    include_sgpars: Annotated[
+        bool, "Whether to also include sgpars from the models automatically"
+    ] = False,
 ) -> str:
     """
     Perform a refinement using the specified profiles, models, and variables.
@@ -336,8 +381,13 @@ async def solve(
         profile_names,
         model_names,
         variable_names,
+        residual_equations=residual_equations,
+        constraints=constraints,
+        restraints=restraints,
+        name=name,
         weights=weights,
-        initial_values=initial_values,
+        metas=metas,
+        include_sgpars=include_sgpars,
     )
 
     return out_string
