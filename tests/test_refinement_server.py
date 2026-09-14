@@ -1,8 +1,13 @@
+from pathlib import Path
+
 import numpy
 import pytest
+from helper import run_ni_example
 from mcp import Client
 
 from diffpy.apps.refinebase.refinement_server import mcp
+
+_DATA_DIR = Path(__file__).parent / "data"
 
 
 @pytest.fixture
@@ -21,12 +26,12 @@ async def test_refine_sine():
             "add_profile_from_file",
             {
                 "profile_name": "sine_profile",
-                "profile_path": "tests/data/sine.dat",
+                "profile_path": str(_DATA_DIR / "sine.dat"),
             },
         )
         assert "sine_profile" in session.profiles_dict
         await mcp_client.call_tool(
-            "add_model_from_equation",
+            "add_equation_model",
             {
                 "model_name": "sine_model",
                 "equation_str": "A*sin(x)",
@@ -34,10 +39,9 @@ async def test_refine_sine():
         )
         assert "sine_model" in session.models_dict
         await mcp_client.call_tool(
-            "set_variable_value",
+            "set_variables_value",
             {
-                "variable_name": "sine_model.A",
-                "value": 0.8,
+                "name_value_dict": {"sine_model.A": 0.8},
             },
         )
         expected_value = 0.8
@@ -57,24 +61,26 @@ async def test_refine_sine():
 
 
 @pytest.mark.anyio
-async def test_refine_ni(ni_refined_parameters):
+async def test_refine_ni():
     from diffpy.apps.refinebase.refinement_server import session
+
+    ni_refined_parameters = run_ni_example()
 
     async with Client(mcp, raise_exceptions=True) as mcp_client:
         await mcp_client.call_tool(
             "add_profile_from_file",
             {
                 "profile_name": "ni_profile",
-                "profile_path": "tests/data/Ni.gr",
+                "profile_path": str(_DATA_DIR / "Ni.gr"),
             },
         )
         await mcp_client.call_tool(
             "set_profile_calculation_range",
             {
                 "profile_name": "ni_profile",
-                "start": 1.5,
-                "end": 50,
-                "step": 0.01,
+                "xmin": 1.5,
+                "xmax": 20,
+                "dx": 0.01,
             },
         )
         await mcp_client.call_tool(
@@ -85,10 +91,10 @@ async def test_refine_ni(ni_refined_parameters):
             },
         )
         await mcp_client.call_tool(
-            "add_model_from_structure_file",
+            "add_pdf_model",
             {
                 "model_name": "pdf",
-                "structure_file_path": "tests/data/Ni.cif",
+                "structure_file_path": str(_DATA_DIR / "Ni.cif"),
             },
         )
         await mcp_client.call_tool(
@@ -99,7 +105,7 @@ async def test_refine_ni(ni_refined_parameters):
             },
         )
         await mcp_client.call_tool(
-            "add_model_from_equation",
+            "add_equation_model",
             {
                 "model_name": "ni_model",
                 "equation_str": "s*pdf",
@@ -109,7 +115,7 @@ async def test_refine_ni(ni_refined_parameters):
             "combine_models",
             {
                 "parent_model_name": "ni_model",
-                "child_model_name": "pdf",
+                "child_model_names": ["pdf"],
                 "symbol": "pdf",
             },
         )
@@ -122,12 +128,19 @@ async def test_refine_ni(ni_refined_parameters):
             "pdf.qbroad",
         ]
         await mcp_client.call_tool(
+            "set_variables_value",
+            {
+                "name_value_dict": dict(
+                    zip(variable_names, [3.52, 0.4, 0.005, 2, 0.04, 0.02])
+                ),
+            },
+        )
+        await mcp_client.call_tool(
             "solve",
             {
                 "profile_names": ["ni_profile"],
                 "model_names": ["ni_model"],
                 "variable_names": variable_names,
-                "initial_values": [3.52, 0.4, 0.005, 2, 0.04, 0.02],
             },
         )
         name_to_cmi_name = {

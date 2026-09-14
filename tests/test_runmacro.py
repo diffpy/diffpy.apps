@@ -3,8 +3,7 @@ from pathlib import Path
 
 import numpy
 import pytest
-from helper import make_cmi_recipe
-from scipy.optimize import least_squares
+from helper import run_ni_example
 
 from diffpy.apps.app_runmacro import MacroParser
 
@@ -16,14 +15,6 @@ def test_meta_model():
     # C1: Run the same fit with pdfadapter and diffpy_cmi
     #   Expect the refined parameters to be the same within 1e-5
     #   diffpy_cmi fitting
-    initial_pv_dict = {
-        "s0": 0.4,
-        "qdamp": 0.04,
-        "qbroad": 0.02,
-        "G1_a": 3.52,
-        "G1_delta2": 2,
-        "G1_Uiso_0": 0.005,
-    }
     variables_to_refine = [
         "G1_a",
         "s0",
@@ -32,21 +23,7 @@ def test_meta_model():
         "qdamp",
         "qbroad",
     ]
-    diffpycmi_recipe = make_cmi_recipe(
-        _STRUCTURE_PATH, _PROFILE_PATH, initial_pv_dict
-    )
-    diffpycmi_recipe.fithooks[0].verbose = 0
-    diffpycmi_recipe.fix("all")
-    for var_name in variables_to_refine:
-        diffpycmi_recipe.free(var_name)
-        least_squares(
-            diffpycmi_recipe.residual,
-            diffpycmi_recipe.values,
-            x_scale="jac",
-        )
-    diffpy_pv_dict = {}
-    for pname, parameter in diffpycmi_recipe._parameters.items():
-        diffpy_pv_dict[pname] = parameter.value
+    diffpy_pv_dict = run_ni_example()
 
     diffpy_dsl = f"""
 load structure G1 from "{_STRUCTURE_PATH}"
@@ -54,7 +31,7 @@ load profile exp_ni from "{_PROFILE_PATH}"
 
 set G1 spacegroup as auto
 set exp_ni q_range as 0.1 25
-set exp_ni calculation_range as 1.5 50 0.01
+set exp_ni calculation_range as 1.5 20 0.01
 create equation variables s0
 set equation as "s0*G1"
 
