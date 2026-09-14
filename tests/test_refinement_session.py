@@ -188,7 +188,6 @@ def test_refine_multi_contribution():
     session.add_pdf_model(
         structure_file_path=str(_DATA_DIR / "si.cif"),
         model_name="pdf_si",
-        structure_lib="PyObjcryst",
     )
     session.constrain_pdf_model_space_group_symmetry("pdf_si")
     session.add_pdf_model(
@@ -225,7 +224,11 @@ def test_refine_multi_contribution():
             "resv",
         ],
         constraints=[
-            {"ni_delta2": 2.5, "si_delta2": 2.5, "pscale": 0.8},
+            {
+                "pscale": 0.8,
+                "ni_delta2": 2.5,
+                "si_delta2": 2.5,
+            },
             {
                 "pdf_ni.delta2": "ni_delta2",
                 "pdf_ni_neutron.delta2": "ni_delta2",

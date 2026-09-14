@@ -199,10 +199,36 @@ class ParametricModelPDF(ParametricModel):
         name,
         structure_file_path=None,
         from_model_name=None,
-        structure_lib="Diffpy",
     ):
         super().__init__(name=name)
         self.calc_obj = PDFGenerator(name)
+        # NOTE: Certain space groups require dual origin handling.
+        DUAL_ORIGIN_SG_NUMBERS = {
+            48,
+            50,
+            59,
+            68,
+            70,
+            85,
+            86,
+            88,
+            125,
+            126,
+            129,
+            130,
+            133,
+            134,
+            137,
+            138,
+            141,
+            142,
+            201,
+            203,
+            222,
+            224,
+            227,
+            228,
+        }
         if structure_file_path is not None:
             stru_parser = get_parser("auto")
             structure = stru_parser.parse(
@@ -210,16 +236,11 @@ class ParametricModelPDF(ParametricModel):
             )
             sg = getattr(stru_parser, "spacegroup", None)
             self.space_group_symbol = sg.short_name if sg is not None else "P1"
-            if structure_lib == "Diffpy":
-                self.calc_obj.setStructure(structure)
-            elif structure_lib == "PyObjcryst":
+            if sg.number in DUAL_ORIGIN_SG_NUMBERS:
                 structure = loadCrystal(structure_file_path)
                 self.calc_obj.setStructure(structure)
             else:
-                raise ValueError(
-                    f"Unsupported structure library: {structure_lib} "
-                    "Please use 'Diffpy' or 'PyObjcryst'."
-                )
+                self.calc_obj.setStructure(structure)
         elif from_model_name is not None:
             self.calc_obj.setPhase(from_model_name.calc_obj.phase)
             self.space_group_symbol = from_model_name.space_group_symbol

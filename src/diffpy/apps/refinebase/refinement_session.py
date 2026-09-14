@@ -134,7 +134,6 @@ class RefinementSession:
         model_name: str,
         structure_file_path=None,
         from_model_name=None,
-        structure_lib="Diffpy",
     ):
         from diffpy.apps.refinebase.parametric_model import (
             ParametricModelPDF,
@@ -146,7 +145,6 @@ class RefinementSession:
             pdf_model = ParametricModelPDF(
                 model_name,
                 structure_file_path=structure_file_path,
-                structure_lib=structure_lib,
             )
         elif from_model_name is not None:
             if from_model_name not in self.models_dict:
@@ -426,3 +424,8 @@ class RefinementSession:
         # NOTE: to be implemented
         for id, recipe in self.recipes_dict.items():
             recipe.plot_recipe()
+
+    def clear(self):
+        self.profiles_dict.clear()
+        self.models_dict.clear()
+        self.recipes_dict.clear()
