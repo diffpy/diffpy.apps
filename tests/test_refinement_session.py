@@ -2,15 +2,54 @@ from pathlib import Path
 
 import numpy
 from helper import (
+    run_c60_example,
     run_multi_contribution_example,
     run_nanoparticle_example,
     run_ni_example,
-    run_c60_example,
 )
 
 from diffpy.apps.refinebase.refinement_session import RefinementSession
 
 _DATA_DIR = Path(__file__).parent / "data"
+
+
+def test_restraint():
+    xarray = numpy.linspace(0, 10, 100)
+    yarray = 2 * xarray
+    session = RefinementSession()
+    session.add_profile_from_arrays(
+        profile_name="linear", xarray=xarray, yarray=yarray
+    )
+    session.add_equation_model(model_name="linear_model", equation_str="m*x")
+    session.set_variables_value(
+        {
+            "linear_model.m": 1,
+        }
+    )
+    session._solve(
+        name="linear_upper_bound",
+        profiles=[session.profiles_dict["linear"]],
+        models=[session.models_dict["linear_model"]],
+        variable_names=["linear_model.m"],
+        bounds={"linear_model.m": {"upper_bound": 1.8, "uncertainty": 1e-4}},
+    )
+    assert numpy.isclose(
+        session.get_variable("linear_model.m")["value"],
+        1.8,
+        rtol=1e-2,
+    )
+    session._solve(
+        name="linear_lower_bound",
+        profiles=[session.profiles_dict["linear"]],
+        models=[session.models_dict["linear_model"]],
+        variable_names=["linear_model.m"],
+        bounds={"linear_model.m": {"lower_bound": 2.2, "uncertainty": 1e-4}},
+    )
+    assert numpy.isclose(
+        session.get_variable("linear_model.m")["value"],
+        2.2,
+        rtol=1e-2,
+    )
 
 
 def test_refine_sine(sine_profile):
@@ -354,7 +393,7 @@ def test_refine_nanoparticle_example():
 
 
 def test_refine_c60_example():
-    make_c60_py = (_DATA_DIR / "make_c60.py").read_text()
+    make_c60_py = (_DATA_DIR / "make_c60.txt").read_text()
     session = RefinementSession()
     session.add_profile_from_file(
         profile_path=str(_DATA_DIR / "C60.gr"), profile_name="c60", xname="r"

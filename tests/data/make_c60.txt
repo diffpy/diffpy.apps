@@ -1,7 +1,8 @@
+from pathlib import Path
+
 from pyobjcryst.crystal import Crystal
 from pyobjcryst.molecule import Molecule
 from pyobjcryst.scatteringpower import ScatteringPowerAtom
-from pathlib import Path
 
 c60xyz = Path(c60xyz_path).read_text()
 

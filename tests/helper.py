@@ -264,7 +264,7 @@ def run_c60_example():
     global_namespace = {"c60xyz_path": str(_DATA_DIR / "C60xyz.txt")}
     local_namespace = {}
     exec(
-        (Path(__file__).parent / "data" / "make_c60.py").read_text(),
+        (Path(__file__).parent / "data" / "make_c60.txt").read_text(),
         global_namespace,
         local_namespace,
     )

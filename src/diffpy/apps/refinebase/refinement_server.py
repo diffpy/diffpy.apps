@@ -468,8 +468,8 @@ async def solve(
             "and the second dict is variable-constraint_equation pair."
         ),
     ] = None,
-    restraints: Annotated[
-        list[str], "List of restraints to apply during the refinement"
+    bounds: Annotated[
+        dict, "Dictionary of bounds for variables or equations"
     ] = None,
     name: Annotated[str, "Name of the refinement session"] = None,
     weights: Annotated[
@@ -498,8 +498,8 @@ async def solve(
     constraints : list[dict], optional
         First dict is new_variable-initial value pair,
         and the second dict is variable-constraint_equation pair.
-    restraints : list[str], optional
-        List of restraints to apply during the refinement.
+    bounds : dict, optional
+        Dictionary of bounds for variables or equations.
     name : str, optional
         Name of the refinement session.
     weights : list[float], optional
@@ -526,7 +526,7 @@ async def solve(
         variable_names,
         residual_equations=residual_equations,
         constraints=constraints,
-        restraints=restraints,
+        bounds=bounds,
         name=name,
         weights=weights,
         metas=metas,

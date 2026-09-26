@@ -4,6 +4,7 @@ from functools import wraps
 from pathlib import Path
 
 import networkx as nx
+import numpy
 from pyobjcryst import loadCrystal
 
 from diffpy.srfit.fitbase import FitContribution
@@ -245,7 +246,14 @@ class ParametricModelFunction(ParametricModel):
 class ParametricModelPDF(ParametricModel):
     # NOTE: qmin, qmax, stype(scattering type) are meta handled
     #   throughout the loaded profile in the refinement session
-    def __init__(self, name, structure, spacegroup_symbol="P1", finite=False):
+    def __init__(
+        self,
+        name,
+        structure,
+        spacegroup_symbol="P1",
+        finite=False,
+        run_parallel=True,
+    ):
         """
         Create a ParametricModelPDF instance from a structure object.
 
@@ -269,6 +277,25 @@ class ParametricModelPDF(ParametricModel):
         self.space_group_symbol = spacegroup_symbol
         self.sgpar_names = []
         self._rebuild_graph()
+        if run_parallel:
+            try:
+                import multiprocessing
+                from multiprocessing import Pool
+
+                import psutil
+            except ImportError:
+                print(
+                    "\nYou don't appear to have the "
+                    "necessary packages for parallelization"
+                )
+            syst_cores = multiprocessing.cpu_count()
+            cpu_percent = psutil.cpu_percent()
+            avail_cores = numpy.floor(
+                (100 - cpu_percent) / (100.0 / syst_cores)
+            )
+            ncpu = int(numpy.max([1, avail_cores]))
+            pool = Pool(processes=ncpu)
+            self.calc_obj.parallel(ncpu=ncpu, mapfunc=pool.map)
 
     def _hide_dependent_parameters(self, use_uiso=True):
         if use_uiso:
@@ -545,7 +572,11 @@ DUAL_ORIGIN_SG_NUMBERS = {
 
 
 def create_pdf_model_from_file(
-    name, structure_file_path, library="Diffpy", finite=False
+    name,
+    structure_file_path,
+    library="Diffpy",
+    finite=False,
+    run_parallel=True,
 ):
     """Create a ParametricModelPDF by parsing a structure file."""
     stru_parser = get_parser("auto")
@@ -557,16 +588,21 @@ def create_pdf_model_from_file(
     ) or library == "ObjCryst":
         structure = loadCrystal(structure_file_path)
     return ParametricModelPDF(
-        name, structure, spacegroup_symbol=spacegroup_symbol, finite=finite
+        name,
+        structure,
+        spacegroup_symbol=spacegroup_symbol,
+        finite=finite,
+        run_parallel=run_parallel,
     )
 
 
-def create_pdf_model_from_model(name, from_model):
+def create_pdf_model_from_model(name, from_model, run_parallel=True):
     """Create a ParametricModelPDF sharing the phase of from_model."""
     return ParametricModelPDF(
         name,
         from_model.calc_obj.phase,
         spacegroup_symbol=from_model.space_group_symbol,
+        run_parallel=run_parallel,
     )
 
 
@@ -577,6 +613,7 @@ def create_pdf_model_from_code(
     global_namespace={},
     local_structure_name="structure",
     finite=False,
+    run_parallel=True,
 ):
     """Create a ParametricModelPDF by executing code that builds a structure.
 
@@ -618,5 +655,9 @@ def create_pdf_model_from_code(
             )
 
     return ParametricModelPDF(
-        name, structure, spacegroup_symbol=spacegroup_symbol, finite=finite
+        name,
+        structure,
+        spacegroup_symbol=spacegroup_symbol,
+        finite=finite,
+        run_parallel=run_parallel,
     )
