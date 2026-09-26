@@ -11,7 +11,7 @@ from mcp.server import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
 
 from diffpy.apps.refinebase.refinement_session import RefinementSession
-from diffpy.apps.refinebase.util import *
+from diffpy.apps.refinebase.util import download_mp_cifs
 
 session = RefinementSession()
 mcp = MCPServer("diffpy.apps")
@@ -66,7 +66,9 @@ async def download_mp_cifs_tool(
     output_dir: Annotated[str, "Directory to save the CIF files"] = "mp_cifs",
     api_key: Annotated[str | None, "Materials Project API key"] = None,
 ) -> list[str]:
-    """Download a consecutive range of Materials Project structures as CIF files."""
+    """
+    Download a consecutive range of Materials Project structures as CIF files.
+    """
     return [
         str(path)
         for path in download_mp_cifs(

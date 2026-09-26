@@ -13,7 +13,9 @@ from diffpy.apps.refinebase.refinement_session import RefinementSession
 _DATA_DIR = Path(__file__).parent / "data"
 
 
-def test_restraint():
+def test_bonds():
+    # C1: Create a soft bound with an upper limit and high penalty
+    #   Expect the variable to be constrained by the upper bound
     xarray = numpy.linspace(0, 10, 100)
     yarray = 2 * xarray
     session = RefinementSession()
@@ -38,6 +40,8 @@ def test_restraint():
         1.8,
         rtol=1e-2,
     )
+    # C2: Create a soft bound with a lower limit and high penalty
+    #   Expect the variable to be constrained by the lower bound
     session._solve(
         name="linear_lower_bound",
         profiles=[session.profiles_dict["linear"]],
@@ -50,6 +54,8 @@ def test_restraint():
         2.2,
         rtol=1e-2,
     )
+    # NOTE: hard bounds are defined but not used by diffpy.srfit
+    #   Skip testing hard bounds.
 
 
 def test_refine_sine(sine_profile):
