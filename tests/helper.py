@@ -325,9 +325,3 @@ def run_c60_example():
         name: par.value for name, par in recipe._parameters.items()
     }
     return diffpy_pv_dict
-
-
-if __name__ == "__main__":
-    diffpy_pv_dict = run_c60_example()
-    # diffpy_pv_dict = run_ni_example()
-    print(diffpy_pv_dict)
