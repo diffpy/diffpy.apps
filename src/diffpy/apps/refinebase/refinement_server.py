@@ -11,6 +11,7 @@ from mcp.server import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
 
 from diffpy.apps.refinebase.refinement_session import RefinementSession
+from diffpy.apps.refinebase.util import *
 
 session = RefinementSession()
 mcp = MCPServer("diffpy.apps")
@@ -54,6 +55,24 @@ async def refinement_playbook():
     file_path = str(Path(__file__).parent / "refinement_playbook.md")
     with open(file_path, "r") as f:
         return f.read()
+
+
+@mcp.tool()
+@tool_errors
+async def download_mp_cifs_tool(
+    query: Annotated[str, "Query for the Materials Project structures"],
+    start_index: Annotated[int, "Start index of the structures to download"],
+    end_index: Annotated[int, "End index of the structures to download"],
+    output_dir: Annotated[str, "Directory to save the CIF files"] = "mp_cifs",
+    api_key: Annotated[str | None, "Materials Project API key"] = None,
+) -> list[str]:
+    """Download a consecutive range of Materials Project structures as CIF files."""
+    return [
+        str(path)
+        for path in download_mp_cifs(
+            query, start_index, end_index, output_dir, api_key
+        )
+    ]
 
 
 @mcp.tool()
