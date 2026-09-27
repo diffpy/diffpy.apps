@@ -489,8 +489,8 @@ async def solve(
             "and the second dict is variable-constraint_equation pair."
         ),
     ] = None,
-    restraints: Annotated[
-        list[str], "List of restraints to apply during the refinement"
+    bounds: Annotated[
+        dict, "Dictionary of bounds for variables or equations"
     ] = None,
     name: Annotated[str, "Name of the refinement session"] = None,
     weights: Annotated[
@@ -519,8 +519,24 @@ async def solve(
     constraints : list[dict], optional
         First dict is new_variable-initial value pair,
         and the second dict is variable-constraint_equation pair.
-    restraints : list[str], optional
-        List of restraints to apply during the refinement.
+    bounds : dict, optional
+        Dictionary of bounds for variables or equations.
+        e.g. {"variable_name":
+        {
+            "lower_bound": 0,
+            "upper_bound": 10,
+            "uncertainty": 1,
+            "scaled": False
+        }}
+        # start copied from diffpy.srfit docstring
+        scaled : bool, optional
+            If True, the restraint penalty is scaled by the unrestrained
+            point-average chi^2 (chi^2/numpoints) (default is False).
+        params : dict, optional
+            The dictionary of Parameters, indexed by name, that are used in
+            `param_or_eq` (if an equation string is used) but are not part
+            of the RecipeOrganizer (default is {}).
+        # end copied from diffpy.srfit docstring
     name : str, optional
         Name of the refinement session.
     weights : list[float], optional
@@ -547,7 +563,7 @@ async def solve(
         variable_names,
         residual_equations=residual_equations,
         constraints=constraints,
-        restraints=restraints,
+        bounds=bounds,
         name=name,
         weights=weights,
         metas=metas,
