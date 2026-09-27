@@ -412,7 +412,7 @@ def test_refine_c60_example():
         model_name="pdf",
         code=make_c60_py,
         local_structure_name="molecule",  # The structure name in 'code'
-        global_namespace={"c60xyz_path": str(_DATA_DIR / "C60xyz.txt")},
+        global_namespace={"c60xyz_path": str(_DATA_DIR / "c60xyz.txt")},
         finite=True,
     )
     for i in range(1, 61):
