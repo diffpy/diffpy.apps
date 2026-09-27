@@ -102,7 +102,6 @@ async def add_profile_from_file(
 async def add_profile_from_arrays(
     xarray: Annotated[list, "X-values of the profile"],
     yarray: Annotated[list, "Y-values of the profile"],
-    dx: Annotated[list, "Uncertainties in the x-values"] = None,
     dy: Annotated[list, "Uncertainties in the y-values"] = None,
     profile_name: Annotated[str, "Unique name for the profile"] = None,
     xname: Annotated[str, "Name of the x-axis for the profile"] = "x",
@@ -113,7 +112,6 @@ async def add_profile_from_arrays(
     session.add_profile_from_arrays(
         xarray,
         yarray,
-        dx=dx,
         dy=dy,
         profile_name=profile_name,
         xname=xname,
@@ -203,6 +201,24 @@ async def add_pdf_model(
     from_model_name: Annotated[
         str, "Name of the existing model to base the new model on"
     ] = None,
+    code: Annotated[
+        str, "Code that builds a structure to base the new model on"
+    ] = None,
+    library: Annotated[
+        str, "Structure library to use ('Diffpy' or 'ObjCryst')"
+    ] = "Diffpy",
+    global_namespace: Annotated[
+        dict, "Global namespace to execute 'code' in"
+    ] = {},
+    local_structure_name: Annotated[
+        str, "Name of the structure variable assigned by 'code'"
+    ] = "structure",
+    finite: Annotated[
+        bool, "Whether to use DebyePDFGenerator instead of PDFGenerator"
+    ] = False,
+    run_parallel: Annotated[
+        bool, "Whether to run the PDF model in parallel"
+    ] = True,
 ) -> str:
     """
     Add a structure-file-based parametric model to the refinement session.
@@ -214,6 +230,18 @@ async def add_pdf_model(
     structure_file_path : str, optional
         Path to the structure file.
     from_model_name : str, optional
+    code : str, optional
+        Code that builds a structure to base the new model on.
+    library : str, optional
+        Structure library to use ('Diffpy' or 'ObjCryst').
+    global_namespace : dict, optional
+        Global namespace to execute 'code' in.
+    local_structure_name : str, optional
+        Name of the structure variable assigned by 'code'.
+    finite : bool, optional
+        Whether to use DebyePDFGenerator instead of PDFGenerator.
+    run_parallel : bool, optional
+        Whether to run the PDF model in parallel.
 
     Notes
     -----
@@ -221,11 +249,20 @@ async def add_pdf_model(
     existing computation object. For example, when the same phase's signal
     is observed in multiple profiles, 'from_model_name' allows the refinement
     backend to modify the same structure across multiple profiles.
+
+    Exactly one of 'structure_file_path', 'from_model_name', or 'code'
+    must be provided.
     """
     session.add_pdf_model(
         model_name=model_name,
         structure_file_path=structure_file_path,
         from_model_name=from_model_name,
+        code=code,
+        library=library,
+        global_namespace=global_namespace,
+        local_structure_name=local_structure_name,
+        finite=finite,
+        run_parallel=run_parallel,
     )
     return f"Model {model_name} added successfully."
 

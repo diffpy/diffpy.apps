@@ -56,7 +56,6 @@ class RefinementSession:
         self,
         xarray,
         yarray,
-        dx=None,
         dy=None,
         profile_name: str = None,
         xname: str = "x",
@@ -68,7 +67,7 @@ class RefinementSession:
         if profile_name is None:
             profile_name = str(uuid.uuid4())
         profile = Profile()
-        profile.setObservedProfile(xarray, yarray, dx=dx, dy=dy)
+        profile.setObservedProfile(xobs=xarray, yobs=yarray, dyobs=dy)
         profile.xpar.name = xname
         profile._xname = xname
         profile.ypar.name = yname
