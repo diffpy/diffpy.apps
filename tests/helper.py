@@ -9,14 +9,16 @@ from diffpy.srfit.fitbase import (
     FitRecipe,
     Profile,
 )
-from diffpy.srfit.pdf import PDFGenerator, PDFParser
+from diffpy.srfit.pdf import DebyePDFGenerator, PDFGenerator, PDFParser
 from diffpy.srfit.structure import constrainAsSpaceGroup
 from diffpy.structure.parsers import getParser
 
+_DATA_DIR = Path(__file__).parent / "data"
+
 
 def run_ni_example():
-    structure_path = str(Path(__file__).parent / "data" / "Ni.cif")
-    profile_path = str(Path(__file__).parent / "data" / "Ni.gr")
+    structure_path = str(_DATA_DIR / "Ni.cif")
+    profile_path = str(_DATA_DIR / "Ni.gr")
     initial_pv_dict = {
         "s0": 0.4,
         "qdamp": 0.04,
@@ -126,14 +128,12 @@ def run_ni_example():
 
 
 def run_multi_contribution_example():
-    ciffile_ni = str(Path(__file__).parent / "data" / "Ni.cif")
-    ciffile_si = str(Path(__file__).parent / "data" / "si.cif")
-    xdata_ni = str(Path(__file__).parent / "data" / "ni-q27r60-xray.gr")
-    ndata_ni = str(Path(__file__).parent / "data" / "ni-q27r100-neutron.gr")
-    xdata_si = str(Path(__file__).parent / "data" / "si-q27r60-xray.gr")
-    xdata_sini = str(
-        Path(__file__).parent / "data" / "si90ni10-q27r60-xray.gr"
-    )
+    ciffile_ni = str(_DATA_DIR / "Ni.cif")
+    ciffile_si = str(_DATA_DIR / "si.cif")
+    xdata_ni = str(_DATA_DIR / "ni-q27r60-xray.gr")
+    ndata_ni = str(_DATA_DIR / "ni-q27r100-neutron.gr")
+    xdata_si = str(_DATA_DIR / "si-q27r60-xray.gr")
+    xdata_sini = str(_DATA_DIR / "si90ni10-q27r60-xray.gr")
 
     def makeProfile(datafile):
         profile = Profile()
@@ -254,6 +254,73 @@ def run_nanoparticle_example():
     recipe.add_variable(pdfgenerator.scale, 1)
     recipe.add_variable(pdfgenerator.delta2, 0)
     leastsq(recipe.residual, recipe.get_values())
+    diffpy_pv_dict = {
+        name: par.value for name, par in recipe._parameters.items()
+    }
+    return diffpy_pv_dict
+
+
+def run_c60_example():
+    global_namespace = {"c60xyz_path": str(_DATA_DIR / "c60xyz.txt")}
+    local_namespace = {}
+    exec(
+        (Path(__file__).parent / "data" / "make_c60.txt").read_text(),
+        global_namespace,
+        local_namespace,
+    )
+    molecule = local_namespace["molecule"]
+    profile = Profile()
+    profile.loadtxt(str(Path(__file__).parent / "data" / "C60.gr"))
+    profile.set_calculation_range(xmin=1.2, xmax=8)
+    generator = DebyePDFGenerator("G")
+    generator.setStructure(molecule)
+    generator.setQmin(0.68)
+    generator.setQmax(22)
+    contribution = FitContribution("bucky")
+    contribution.add_profile_generator(generator)
+    contribution.set_profile(profile, xname="r")
+    recipe = FitRecipe()
+    recipe.add_contribution(contribution)
+    c60 = generator.phase
+
+    # First, the isotropic thermal displacement factor.
+    Biso = recipe.create_new_variable("Biso")
+    for atom in c60.getScatterers():
+        # We have defined a 'center' atom that is a dummy, which means that it
+        # has no scattering power. It is only used as a reference point for
+        # our bond length. We don't want to constrain it.
+        if not atom.isDummy():
+            recipe.add_constraint(atom.Biso, Biso)
+    # We need to let the molecule expand. If we were modeling it as a crystal,
+    # we could let the unit cell expand. For instruction purposes, we use a
+    # Molecule to model C60, and molecules have different modeling options than
+    # crystals. To make the molecule expand from a central point, we will
+    # constrain the distance from each atom to a dummy center atom that was
+    # created with the molecule, and allow that distance to vary. (We could
+    # also let the nearest-neighbor bond lengths vary, but that would be much
+    # more difficult to set up.)
+    center = c60.center
+    # Create a new Parameter that represents the radius of the molecule. Note
+    # that we don't give it an initial value. Since the variable is being
+    # directly constrained to further below, its initial value will be inferred
+    # from the constraint.
+    radius = recipe.create_new_variable("radius")
+    for i, atom in enumerate(c60.getScatterers()):
+
+        if atom.isDummy():
+            continue
+
+        # This creates a Parameter that moves the second atom according to the
+        # bond length. Note that each Parameter needs a unique name.
+        par = c60.addBondLengthParameter("rad%i" % i, center, atom)
+        recipe.add_constraint(par, radius)
+
+    # Add the correlation term, scale. The scale is too short to effectively
+    # determine qdamp.
+    recipe.add_variable(generator.delta2, 2)
+    recipe.add_variable(generator.scale, 1.3e4)
+    leastsq(recipe.residual, recipe.get_values())
+
     diffpy_pv_dict = {
         name: par.value for name, par in recipe._parameters.items()
     }

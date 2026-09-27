@@ -1,0 +1,22 @@
+from pathlib import Path
+
+from pyobjcryst.crystal import Crystal
+from pyobjcryst.molecule import Molecule
+from pyobjcryst.scatteringpower import ScatteringPowerAtom
+
+c60xyz = Path(c60xyz_path).read_text()
+
+c = Crystal(1, 1, 1, "P1")
+c.SetName("c60frame")
+# put a molecule inside the box
+molecule = Molecule(c, "c60")
+c.AddScatterer(molecule)
+molecule.AddAtom(0, 0, 0, None, "center")
+# Create the scattering power object for the carbon atoms
+sp = ScatteringPowerAtom("C", "C")
+c.AddScatteringPower(sp)
+sp.SetBiso(0.25)
+# Add the other atoms. They will be named C1, C2, ..., C60.
+for i, l in enumerate(c60xyz.strip().splitlines()):  # noqa: E741
+    x, y, z = map(float, l.split())
+    molecule.AddAtom(x, y, z, sp, "C%i" % (i + 1))

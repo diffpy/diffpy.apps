@@ -1,7 +1,6 @@
 import uuid
 from collections import OrderedDict
 from collections.abc import Callable
-from functools import wraps
 
 import numpy
 from scipy.optimize import leastsq
@@ -23,28 +22,6 @@ class RefinementSession:
         self.recipes_dict = OrderedDict()
         self.profiles_dict = OrderedDict()
         self.models_dict = OrderedDict()
-
-    def check_profile_exists(method):
-        @wraps(method)
-        def wrapper(self, *args, **kwargs):
-            profile_name = args[0] if args else kwargs.get("profile_name")
-            if profile_name not in self.profiles_dict:
-                raise ValueError(
-                    f"Profile with ID {profile_name} does not exist."
-                )
-            return method(self, *args, **kwargs)
-
-        return wrapper
-
-    def check_model_exists(method):
-        @wraps(method)
-        def wrapper(self, *args, **kwargs):
-            model_name = args[0] if args else kwargs.get("model_name")
-            if model_name not in self.models_dict:
-                raise ValueError(f"Model with ID {model_name} does not exist.")
-            return method(self, *args, **kwargs)
-
-        return wrapper
 
     def add_profile_from_file(
         self,
@@ -100,21 +77,18 @@ class RefinementSession:
         profile._dyname = dyname
         self.profiles_dict[profile_name] = profile
 
-    @check_profile_exists
     def remove_profile(self, profile_name: str):
+        self._get_profile(profile_name)
         del self.profiles_dict[profile_name]
 
-    @check_profile_exists
     def check_profile_meta(self, profile_name: str):
-        profile = self.profiles_dict[profile_name]
+        profile = self._get_profile(profile_name)
         return profile.meta
 
-    @check_profile_exists
     def update_profile_meta(self, profile_name: str, meta: dict):
-        profile = self.profiles_dict[profile_name]
+        profile = self._get_profile(profile_name)
         profile.meta.update(meta)
 
-    @check_profile_exists
     def set_profile_calculation_range(
         self,
         profile_name: str,
@@ -122,17 +96,14 @@ class RefinementSession:
         xmax=None,
         dx=None,
     ):
-        profile = self.profiles_dict[profile_name]
+        profile = self._get_profile(profile_name)
         profile.set_calculation_range(xmin, xmax, dx)
 
-    @check_profile_exists
     def set_profile_calculation_points(self, profile_name: str, x):
-        profile = self.profiles_dict[profile_name]
+        profile = self._get_profile(profile_name)
         profile.set_calculation_points(x)
 
-    def add_equation_model(
-        self, model_name: str, equation_str=None, from_model_name=None
-    ):
+    def add_equation_model(self, model_name: str, equation_str=None):
         from diffpy.apps.refinebase.parametric_model import (
             ParametricModelEquation,
         )
@@ -141,14 +112,6 @@ class RefinementSession:
             raise ValueError(f"Model with ID {model_name} already exists.")
         if equation_str is not None:
             model = ParametricModelEquation(model_name, equation_str)
-        elif from_model_name is not None:
-            if from_model_name not in self.models_dict:
-                raise ValueError(
-                    f"Model with ID {from_model_name} does not exist."
-                )
-            model = ParametricModelEquation(
-                model_name, from_model_name=from_model_name
-            )
         else:
             raise ValueError(
                 "Either equation_str or from_model must be provided."
@@ -160,33 +123,49 @@ class RefinementSession:
         model_name: str,
         structure_file_path=None,
         from_model_name=None,
+        code=None,
         library="Diffpy",
+        global_namespace={},
+        local_structure_name="structure",
+        finite=False,
     ):
         from diffpy.apps.refinebase.parametric_model import (
-            ParametricModelPDF,
+            create_pdf_model_from_code,
+            create_pdf_model_from_file,
+            create_pdf_model_from_model,
         )
 
         if model_name in self.models_dict:
             raise ValueError(f"Model with ID {model_name} already exists.")
         if structure_file_path is not None:
-            pdf_model = ParametricModelPDF(
+            pdf_model = create_pdf_model_from_file(
                 model_name,
-                structure_file_path=structure_file_path,
+                structure_file_path,
                 library=library,
+                finite=finite,
             )
         elif from_model_name is not None:
             if from_model_name not in self.models_dict:
                 raise ValueError(
                     f"Model with ID {from_model_name} does not exist."
                 )
-            pdf_model = ParametricModelPDF(
+            from_model = self.models_dict[from_model_name]
+            pdf_model = create_pdf_model_from_model(
                 model_name,
-                from_model_name=self.models_dict[from_model_name],
-                library=library,
+                from_model,
+            )
+        elif code is not None:
+            pdf_model = create_pdf_model_from_code(
+                model_name,
+                code,
+                global_namespace=global_namespace,
+                local_structure_name=local_structure_name,
+                finite=finite,
             )
         else:
             raise ValueError(
-                "Either structure_file_path or from_model must be provided."
+                "Either structure_file_path, from_model_name, or code "
+                "must be provided."
             )
         self.models_dict[model_name] = pdf_model
 
@@ -232,36 +211,18 @@ class RefinementSession:
             child_model = self.models_dict[child_model_name]
             parent_model.register_submodel(child_model)
 
-    @check_model_exists
     def set_model_equation(self, model_name: str, equation: str):
-        model = self.models_dict[model_name]
-        if not isinstance(model, ParametricModelEquation):
-            raise ValueError(
-                f"Model '{model_name}' is not a "
-                "ParametricModelEquation instance."
-            )
+        model = self._get_equation_model(model_name)
         model.set_equation(equation)
 
-    @check_model_exists
     def set_model_residual_equation(
         self, model_name: str, residual_equation: str
     ):
-        model = self.models_dict[model_name]
-        if not isinstance(model, ParametricModelEquation):
-            raise ValueError(
-                f"Model '{model_name}' is not a "
-                "ParametricModelEquation instance."
-            )
+        model = self._get_equation_model(model_name)
         model.set_residual_equation(residual_equation)
 
-    @check_model_exists
     def get_model_residual_equation(self, model_name: str) -> str:
-        model = self.models_dict[model_name]
-        if not isinstance(model, ParametricModelEquation):
-            raise ValueError(
-                f"Model '{model_name}' is not a "
-                "ParametricModelEquation instance."
-            )
+        model = self._get_equation_model(model_name)
         return model.get_residual_equation()
 
     def set_model_profile(self, model_name: str, profile_name: str):
@@ -275,34 +236,166 @@ class RefinementSession:
         profile = self.profiles_dict[profile_name]
         model.set_profile(profile)
 
-    @check_model_exists
     def get_model_residual(self, model_name: str):
-        model = self.models_dict[model_name]
+        model = self._get_model(model_name)
         if not hasattr(model, "residual"):
             raise ValueError(
                 f"Model '{model_name}' does not have a residual method."
             )
         return model.residual()
 
-    @check_model_exists
     def get_model_evaluation(self, model_name: str):
-        model = self.models_dict[model_name]
+        model = self._get_model(model_name)
         if not hasattr(model, "evaluate"):
             raise ValueError(
                 f"Model '{model_name}' does not have an evaluate method."
             )
         return model.evaluate()
 
-    @check_model_exists
     def constrain_pdf_model_space_group_symmetry(
         self, model_name, space_group=None
     ):
-        model = self.models_dict[model_name]
+        model = self._get_pdf_model(model_name)
+        model.constrain_symmetry(space_group)
+
+    def _get_model(self, model_name):
+        if model_name not in self.models_dict:
+            raise ValueError(f"Model with ID {model_name} does not exist.")
+        return self.models_dict[model_name]
+
+    def _get_pdf_model(self, model_name):
+        model = self._get_model(model_name)
         if not isinstance(model, ParametricModelPDF):
             raise ValueError(
-                f"Model '{model_name}' is not a ParametricModel instance."
+                f"Model '{model_name}' is not a ParametricModelPDF instance."
             )
-        model.constrain_symmetry(space_group)
+        return model
+
+    def _get_equation_model(self, model_name):
+        model = self._get_model(model_name)
+        if not isinstance(model, ParametricModelEquation):
+            raise ValueError(
+                f"Model '{model_name}' is not a "
+                "ParametricModelEquation instance."
+            )
+        return model
+
+    def _get_profile(self, profile_name):
+        if profile_name not in self.profiles_dict:
+            raise ValueError(f"Profile with ID {profile_name} does not exist.")
+        return self.profiles_dict[profile_name]
+
+    def _get_object(self, obj_name):
+        obj_name_splitted = obj_name.split(".")
+        model = self._get_pdf_model(obj_name_splitted[0])
+        if obj_name not in model._graph.nodes:
+            raise ValueError(
+                f"Object with ID {obj_name} does not exist "
+                f"in the model {model.name}."
+            )
+        return model._graph.nodes[obj_name]["obj"]
+
+    def add_pdf_bond_length_parameter(
+        self,
+        model_name,
+        par_name,
+        obj1_name,
+        obj2_name,
+        value=None,
+        const=None,
+    ):
+        model = self._get_pdf_model(model_name)
+        atom1 = self._get_object(obj1_name)
+        atom2 = self._get_object(obj2_name)
+        parent_node_name = ".".join(obj1_name.split(".")[:-1])
+        model.add_bond_length_parameter(
+            par_name,
+            atom1,
+            atom2,
+            value=value,
+            const=const,
+            parent_node_name=parent_node_name,
+        )
+
+    def add_pdf_bond_angle_parameter(
+        self,
+        model_name,
+        par_name,
+        obj1_name,
+        obj2_name,
+        obj3_name,
+        value=None,
+        const=None,
+    ):
+        model = self._get_pdf_model(model_name)
+        atom1 = self._get_object(obj1_name)
+        atom2 = self._get_object(obj2_name)
+        atom3 = self._get_object(obj3_name)
+        parent_node_name = ".".join(obj1_name.split(".")[:-1])
+        model.add_bond_angle_parameter(
+            par_name,
+            atom1,
+            atom2,
+            atom3,
+            value=value,
+            const=const,
+            parent_node_name=parent_node_name,
+        )
+
+    def add_pdf_dihedral_angle_parameter(
+        self,
+        model_name,
+        par_name,
+        obj1_name,
+        obj2_name,
+        obj3_name,
+        obj4_name,
+        value=None,
+        const=None,
+    ):
+        model = self._get_pdf_model(model_name)
+        atom1 = self._get_object(obj1_name)
+        atom2 = self._get_object(obj2_name)
+        atom3 = self._get_object(obj3_name)
+        atom4 = self._get_object(obj4_name)
+        parent_node_name = ".".join(obj1_name.split(".")[:-1])
+        model.add_dihedral_angle_parameter(
+            par_name,
+            atom1,
+            atom2,
+            atom3,
+            atom4,
+            value=value,
+            const=const,
+            parent_node_name=parent_node_name,
+        )
+
+    def restrain_pdf_bond_length_parameter(
+        self, variable_name, length, sigma, delta, scaled=False
+    ):
+        model = self._get_pdf_model(variable_name.split(".")[0])
+        par = self.get_variable(variable_name)["obj"]
+        return model.restrain_bond_length_parameter(
+            par, length, sigma, delta, scaled=scaled
+        )
+
+    def restrain_pdf_bond_angle_parameter(
+        self, variable_name, angle, sigma, delta, scaled=False
+    ):
+        model = self._get_pdf_model(variable_name.split(".")[0])
+        par = self.get_variable(variable_name)["obj"]
+        return model.restrain_bond_angle_parameter(
+            par, angle, sigma, delta, scaled=scaled
+        )
+
+    def restrain_pdf_dihedral_angle_parameter(
+        self, variable_name, angle, sigma, delta, scaled=False
+    ):
+        model = self._get_pdf_model(variable_name.split(".")[0])
+        par = self.get_variable(variable_name)["obj"]
+        return model.restrain_dihedral_angle_parameter(
+            par, angle, sigma, delta, scaled=scaled
+        )
 
     def set_variables_value(self, name_value_dict):
         for variable_name, value in name_value_dict.items():
@@ -334,6 +427,14 @@ class RefinementSession:
             "value": variable_obj.value,
             "obj": variable_obj,
         }
+
+    def get_model_obj(self, model_name, obj_name):
+        model = self._get_model(model_name)
+        if obj_name not in model._graph.nodes:
+            raise ValueError(
+                f"Object '{obj_name}' not found inside model '{model_name}'."
+            )
+        return model._graph.nodes[obj_name]["obj"]
 
     def _solve(
         self,
@@ -390,10 +491,7 @@ class RefinementSession:
                 continue
             recipe.add_variable(var, name=variable_names[i])
 
-        recipe.fix("all")
-        for variable_name in variable_names:
-            recipe.free(variable_name)
-        # least_squares(recipe.residual, recipe.getValues(), x_scale="jac")
+        recipe.free("all")
         leastsq(recipe.residual, recipe.getValues())
         # NOTE: non-scalar value will raise error in `get_results_string`
         try:

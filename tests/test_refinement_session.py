@@ -2,6 +2,7 @@ from pathlib import Path
 
 import numpy
 from helper import (
+    run_c60_example,
     run_multi_contribution_example,
     run_nanoparticle_example,
     run_ni_example,
@@ -320,7 +321,7 @@ def test_refine_nanoparticle_example():
             "pdf.phase.Pb0.Uiso": 0.5 / 8 / numpy.pi**2,
         }
     )
-    refined_parameters = session.solve(
+    session.solve(
         profile_names=["pb"],
         model_names=["main"],
         variable_names=[
@@ -350,3 +351,60 @@ def test_refine_nanoparticle_example():
         refined_parameters["Biso_0"],
         rtol=1e-2,
     )
+
+
+def test_refine_c60_example():
+    make_c60_py = (_DATA_DIR / "make_c60.txt").read_text()
+    session = RefinementSession()
+    session.add_profile_from_file(
+        profile_path=str(_DATA_DIR / "C60.gr"), profile_name="c60", xname="r"
+    )
+    session.set_profile_calculation_range(profile_name="c60", xmin=1.2, xmax=8)
+    session.update_profile_meta(
+        profile_name="c60", meta={"qmin": 0.68, "qmax": 22.0}
+    )
+    session.add_pdf_model(
+        model_name="pdf",
+        code=make_c60_py,
+        local_structure_name="molecule",  # The structure name in 'code'
+        global_namespace={"c60xyz_path": str(_DATA_DIR / "c60xyz.txt")},
+        finite=True,
+    )
+    for i in range(1, 61):
+        # Agent can do iteration outside of the MCP server
+        session.add_pdf_bond_length_parameter(
+            model_name="pdf",
+            par_name=f"rad{i}",
+            obj1_name="pdf.phase.center",
+            obj2_name=f"pdf.phase.C{i}",
+        )
+
+    session.models_dict["pdf"].independent_parameters["pdf.phase.C1.x"]
+    initial_radius = session.get_variable("pdf.phase.rad1")["value"]
+    initial_biso = session.get_variable("pdf.phase.C1.Biso")["value"]
+    biso_constraints = {f"pdf.phase.C{i}.Biso": "biso" for i in range(1, 61)}
+    radius_constraints = {f"pdf.phase.rad{i}": "radius" for i in range(1, 61)}
+    variable_constraints = {**radius_constraints, **biso_constraints}
+    session.set_variables_value({"pdf.delta2": 2, "pdf.scale": 1.3e4})
+    session.solve(
+        profile_names=["c60"],
+        model_names=["pdf"],
+        constraints=[
+            {"radius": initial_radius, "biso": initial_biso},
+            variable_constraints,
+        ],
+        variable_names=["radius", "biso", "pdf.delta2", "pdf.scale"],
+    )
+    refined_parameters = run_c60_example()
+    name_to_cmi_name = {
+        "pdf.delta2": "delta2",
+        "pdf.scale": "scale",
+        "radius": "radius",
+        "biso": "Biso",
+    }
+    for name, cmi_name in name_to_cmi_name.items():
+        assert numpy.isclose(
+            session.get_variable(name)["value"],
+            refined_parameters[cmi_name],
+            rtol=1e-2,
+        )

@@ -6,7 +6,7 @@ import pytest
 from diffpy.apps.refinebase.parametric_model import (
     ParametricModelEquation,
     ParametricModelFunction,
-    ParametricModelPDF,
+    create_pdf_model_from_file,
 )
 from diffpy.srfit.fitbase import (
     Profile,
@@ -70,7 +70,7 @@ def test_parametric_pdf_model_parameters():
     parser.parse_file(profile_path)
     profile.load_parsed_data(parser)
     profile.set_calculation_range(xmax=20)
-    pdf_model = ParametricModelPDF(
+    pdf_model = create_pdf_model_from_file(
         "ni", structure_file_path=str(_DATA_DIR / "Ni.cif")
     )
     parameter_names = [
