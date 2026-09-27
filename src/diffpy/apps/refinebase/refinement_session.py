@@ -128,6 +128,7 @@ class RefinementSession:
         global_namespace={},
         local_structure_name="structure",
         finite=False,
+        run_parallel=True,
     ):
         from diffpy.apps.refinebase.parametric_model import (
             create_pdf_model_from_code,
@@ -143,6 +144,7 @@ class RefinementSession:
                 structure_file_path,
                 library=library,
                 finite=finite,
+                run_parallel=run_parallel,
             )
         elif from_model_name is not None:
             if from_model_name not in self.models_dict:
@@ -153,6 +155,7 @@ class RefinementSession:
             pdf_model = create_pdf_model_from_model(
                 model_name,
                 from_model,
+                run_parallel=run_parallel,
             )
         elif code is not None:
             pdf_model = create_pdf_model_from_code(
@@ -161,6 +164,7 @@ class RefinementSession:
                 global_namespace=global_namespace,
                 local_structure_name=local_structure_name,
                 finite=finite,
+                run_parallel=run_parallel,
             )
         else:
             raise ValueError(
