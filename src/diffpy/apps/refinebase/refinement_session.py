@@ -56,7 +56,6 @@ class RefinementSession:
         self,
         xarray,
         yarray,
-        dx=None,
         dy=None,
         profile_name: str = None,
         xname: str = "x",
@@ -68,7 +67,7 @@ class RefinementSession:
         if profile_name is None:
             profile_name = str(uuid.uuid4())
         profile = Profile()
-        profile.setObservedProfile(xarray, yarray, dx=dx, dy=dy)
+        profile.setObservedProfile(xobs=xarray, yobs=yarray, dyobs=dy)
         profile.xpar.name = xname
         profile._xname = xname
         profile.ypar.name = yname
@@ -128,6 +127,7 @@ class RefinementSession:
         global_namespace={},
         local_structure_name="structure",
         finite=False,
+        run_parallel=True,
     ):
         from diffpy.apps.refinebase.parametric_model import (
             create_pdf_model_from_code,
@@ -143,6 +143,7 @@ class RefinementSession:
                 structure_file_path,
                 library=library,
                 finite=finite,
+                run_parallel=run_parallel,
             )
         elif from_model_name is not None:
             if from_model_name not in self.models_dict:
@@ -153,6 +154,7 @@ class RefinementSession:
             pdf_model = create_pdf_model_from_model(
                 model_name,
                 from_model,
+                run_parallel=run_parallel,
             )
         elif code is not None:
             pdf_model = create_pdf_model_from_code(
@@ -161,6 +163,7 @@ class RefinementSession:
                 global_namespace=global_namespace,
                 local_structure_name=local_structure_name,
                 finite=finite,
+                run_parallel=run_parallel,
             )
         else:
             raise ValueError(
@@ -443,19 +446,19 @@ class RefinementSession:
         models,
         variable_names,
         constraints=None,
-        restraints=None,
+        bounds=None,
         weights=None,
         residual_equations=None,
         metas=None,
-        verbose_iterations=0,
     ):
-        # NOTE: restraints to be implemented
         recipe = FitRecipe()
         self.recipes_dict[name] = recipe
         if weights is None:
             weights = numpy.ones(len(profiles))
         if residual_equations is None:
             residual_equations = ["chiv"] * len(profiles)
+        if bounds is None:
+            bounds = {}
         if metas is not None:
             for i in range(len(metas)):
                 profiles[i].meta.update(metas[i])
@@ -490,7 +493,20 @@ class RefinementSession:
             if var in recipe._parameters.values():
                 continue
             recipe.add_variable(var, name=variable_names[i])
-
+        for eq_or_var_name, arg_dict in bounds.items():
+            lb = arg_dict.get("lower_bound", -numpy.inf)
+            ub = arg_dict.get("upper_bound", numpy.inf)
+            use_soft_bounds = arg_dict.get("use_soft_bounds", True)
+            if use_soft_bounds:
+                uncertainty = arg_dict.get("uncertainty", 1)
+                scaled = arg_dict.get("scaled", False)
+                eq_or_var_name = eq_or_var_name.replace(".", "_")
+                recipe.add_soft_bounds(
+                    eq_or_var_name, lb, ub, sig=uncertainty, scaled=scaled
+                )
+            else:
+                par = self.get_variable(eq_or_var_name)["obj"]
+                par.bound_range(lb, ub)
         recipe.free("all")
         leastsq(recipe.residual, recipe.getValues())
         # NOTE: non-scalar value will raise error in `get_results_string`
@@ -507,12 +523,11 @@ class RefinementSession:
         variable_names=[],
         residual_equations=None,
         constraints=None,
-        restraints=None,
+        bounds=None,
         name=uuid.uuid4(),
         weights=None,
         metas=None,
         include_sgpars=False,
-        verbose_iterations=0,
     ):
         profiles = []
         for profile_name in profile_names:
@@ -551,11 +566,10 @@ class RefinementSession:
             variable_names=variable_names,
             residual_equations=residual_equations,
             constraints=constraints,
-            restraints=restraints,
+            bounds=bounds,
             name=name,
             weights=weights,
             metas=metas,
-            verbose_iterations=verbose_iterations,
         )
 
     def plot(self):

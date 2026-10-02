@@ -8,3 +8,5 @@ diffpy.srreal
 diffpy.structure
 networkx
 mcp[cli]
+mp-api
+pymatgen
