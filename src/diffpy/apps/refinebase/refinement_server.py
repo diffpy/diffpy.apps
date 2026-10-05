@@ -300,15 +300,56 @@ async def set_model_equation(
 async def get_model_evaluation(
     model_name: Annotated[str, "Name of the parametric model"],
     data_path: Annotated[str, "Path to the data to retrieve"],
+    xmin: Annotated[
+        float | None,
+        (
+            "Minimum x value for the evaluation "
+            "if the profile is not set for the model"
+        ),
+    ] = None,
+    xmax: Annotated[
+        float | None,
+        (
+            "Maximum x value for the evaluation "
+            "if the profile is not set for the model"
+        ),
+    ] = None,
+    dx: Annotated[
+        float | None,
+        (
+            "Step size for the evaluation "
+            "if the profile is not set for the model"
+        ),
+    ] = None,
+    xname: Annotated[
+        str,
+        (
+            "Name of the x variable for the evaluation "
+            "if the profile is not set for the model"
+        ),
+    ] = "r",
 ) -> str:
     """Get the current evaluation of a parametric model."""
-    evaluation = session.get_model_evaluation(model_name=model_name).tolist()
+    evaluation = session.get_model_evaluation(
+        model_name=model_name, xmin=xmin, xmax=xmax, dx=dx, xname=xname
+    ).tolist()
     with open(data_path, "w") as f:
         json.dump(evaluation, f)
     return (
         f"Evaluation for model {model_name} "
         f"written to {data_path} successfully."
     )
+
+
+@mcp.tool()
+@tool_errors
+async def set_model_profile(
+    model_name: Annotated[str, "Name of the parametric model"],
+    profile_name: Annotated[str, "Name of the profile to set on the model"],
+) -> str:
+    """Set the profile for a parametric model in the refinement session."""
+    session.set_model_profile(model_name, profile_name)
+    return f"Profile {profile_name} set for model {model_name} successfully."
 
 
 @mcp.tool()

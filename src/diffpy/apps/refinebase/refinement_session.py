@@ -247,13 +247,36 @@ class RefinementSession:
             )
         return model.residual()
 
-    def get_model_evaluation(self, model_name: str):
+    def get_model_evaluation(
+        self, model_name: str, xmin=None, xmax=None, dx=None, xname="r"
+    ):
         model = self._get_model(model_name)
         if not hasattr(model, "evaluate"):
             raise ValueError(
                 f"Model '{model_name}' does not have an evaluate method."
             )
-        return model.evaluate()
+        if not (
+            hasattr(model, "calc_obj")
+            and hasattr(model.calc_obj, "profile")
+            and model.calc_obj.profile is not None
+        ):
+            profile = Profile()
+            if isinstance(model.calc_obj, FitContribution):
+                profile.set_observed_profile(
+                    xobs=numpy.arange(xmin, xmax, dx),
+                    yobs=numpy.zeros_like(numpy.arange(xmin, xmax, dx)),
+                    xname=xname,
+                )
+            else:
+                # PDFGenerator uses profile.x, so it doesn't accept xname
+                profile.set_observed_profile(
+                    xobs=numpy.arange(xmin, xmax, dx),
+                    yobs=numpy.zeros_like(numpy.arange(xmin, xmax, dx)),
+                )
+            model.set_profile(profile)
+        ycalc = model.evaluate()
+        model.calc_obj.profile = None
+        return ycalc
 
     def constrain_pdf_model_space_group_symmetry(
         self, model_name, space_group=None
