@@ -187,12 +187,12 @@ To update the existing ``diffpy.cmi`` agentic skill, use the ``--update`` flag:
 .. _cmi:
 
 How to use the local DiffPy MCP server
--------------------------------------------------------------
+--------------------------------------
 
 An MCP server is a bundle of tools, skills, and prompts. To use the the MCP
-server, users need to connect it to a LLM based agent,
+server, users need to connect it to a LLM based-agent,
 such as ``Claude Code Desktop``, and the agent will decide when and how to
-interact with the MCP server.
+interact with the MCP server in the conversation with users.
 
 Connect to Claude Code Desktop
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
