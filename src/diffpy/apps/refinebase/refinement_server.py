@@ -4,7 +4,6 @@ import logging
 import uuid
 from collections.abc import Callable
 from functools import wraps
-from pathlib import Path
 from typing import Annotated
 
 from mcp.server import MCPServer
@@ -47,13 +46,6 @@ def tool_errors(func):
             raise convert(exc) from exc
 
     return sync_wrapper
-
-
-@mcp.prompt()
-async def refinement_playbook():
-    file_path = str(Path(__file__).parent / "refinement_playbook.md")
-    with open(file_path, "r") as f:
-        return f.read()
 
 
 @mcp.tool()
