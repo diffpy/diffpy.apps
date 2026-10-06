@@ -41,6 +41,7 @@ contains
 
 - `runmacro`: A runner for DiffPy macro files.
 - `agentify`: A deployer for diffpy.cmi agentic skills.
+- `Diffpy MCP server`: A local server for the DiffPy MCP instance.
 
 For more information about the diffpy.apps library, please consult our `online documentation <https://diffpy.github.io/diffpy.apps>`_.
 
