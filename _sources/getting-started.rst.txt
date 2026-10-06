@@ -14,6 +14,7 @@ available, including:
 
 - :ref:`runmacro`
 - :ref:`agentify`
+- :ref:`Diffpy MCP server <cmi>`
 
 .. _runmacro:
 
@@ -152,6 +153,7 @@ starting point for the refinement.
     reference variables.
 
 .. _agentify:
+
 Use ``agentify`` to deploy agent skills ``diffpy.cmi``
 ------------------------------------------------------
 
@@ -180,3 +182,69 @@ To update the existing ``diffpy.cmi`` agentic skill, use the ``--update`` flag:
 .. code-block:: bash
 
     diffpy-app agentify --update
+
+
+.. _cmi:
+
+How to use the local DiffPy MCP server
+--------------------------------------
+
+An MCP server is a bundle of tools, skills, and prompts. To use the the MCP
+server, users need to connect it to a LLM based-agent,
+such as ``Claude Code Desktop``, and the agent will decide when and how to
+interact with the MCP server in the conversation with users.
+
+Connect to Claude Code Desktop
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1. Install ``Claude Code Desktop`` (hereafter referred to as ``Claude``).
+2. Open ``Claude`` and open "Settings".
+3. Navigate to the "Developer" section.
+4. In the "Local MCP servers" region, click "Edit Config".
+5. Add the following configuration:
+
+.. code-block:: json
+
+ "mcpServers": {
+    "diffpy.apps": {
+      "command": "<path/to/python>",
+      "args": [
+        "-m", "diffpy.apps.refinebase.refinement_server"
+      ]
+    }
+  }
+
+.. note::
+
+    The expected ``<path/to/python>`` depends on the environment where
+    ``diffpy.apps`` is installed.
+
+    e.g. For conda environments, ``<path/to/python>`` can be found by
+
+    .. code-block:: bash
+
+        conda activate diffpy_apps_env
+        which python
+
+5. Restart the ``Claude``.
+
+6. Go to the "Local MCP servers" section and verify that the
+``diffpy.apps`` server is listed and active.
+
+How to use the MCP server
+~~~~~~~~~~~~~~~~~~~~~~~~~
+Once you have updated the configuration files successfully, ``Claude``
+will connect to the local DiffPy MCP server automatically whenever you open it.
+
+Here is a simple example of conducting Ni structure refinement.
+
+1. Download the :download:`Ni.gr<data/Ni.gr>` and :download:`Ni.cif<data/Ni.cif>`
+files to your working directory.
+
+2. Open ``Claude``, launch the "Code" tab or select "Cowork" in "Chat or Cowork"
+tab.
+
+3. Add the working directory folder to the ``Claude``.
+
+4. Start your conversation! For example, try to ask
+"Tell me what can diffpy.apps do and how it can help me refine the
+Ni.cif against the Ni.gr."

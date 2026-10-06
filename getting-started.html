@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Getting started &mdash; diffpy.apps 0.1.1 documentation</title>
+  <title>Getting started &mdash; diffpy.apps 0.2.0rc0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -14,7 +14,7 @@
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=91f6191e"></script>
+      <script src="_static/documentation_options.js?v=4ee4825d"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,6 +52,11 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#use-agentify-to-deploy-agent-skills-diffpy-cmi">Use <code class="docutils literal notranslate"><span class="pre">agentify</span></code> to deploy agent skills <code class="docutils literal notranslate"><span class="pre">diffpy.cmi</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-use-the-local-diffpy-mcp-server">How to use the local DiffPy MCP server</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#connect-to-claude-code-desktop">Connect to Claude Code Desktop</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#how-to-use-the-mcp-server">How to use the MCP server</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="release.html">Release notes</a></li>
@@ -90,6 +95,7 @@ available, including:</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="#runmacro"><span class="std std-ref">Use runmacro to start refinement with a macro file</span></a></p></li>
 <li><p><a class="reference internal" href="#agentify"><span class="std std-ref">Use agentify to deploy agent skills diffpy.cmi</span></a></p></li>
+<li><p><a class="reference internal" href="#cmi"><span class="std std-ref">Diffpy MCP server</span></a></p></li>
 </ul>
 <section id="use-runmacro-to-start-refinement-with-a-macro-file">
 <span id="runmacro"></span><h2>Use <code class="docutils literal notranslate"><span class="pre">runmacro</span></code> to start refinement with a macro file<a class="headerlink" href="#use-runmacro-to-start-refinement-with-a-macro-file" title="Link to this heading"></a></h2>
@@ -128,8 +134,8 @@ your sample, and the profile file is a <code class="docutils literal notranslate
 experimental data.</p>
 </div>
 <p>Start the macro file with the following two lines:</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>load structure G1 from &quot;path/to/structure.cif&quot;
-load profile exp_ni from &quot;path/to/profile.gr&quot;
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>load structure G1 from "path/to/structure.cif"
+load profile exp_ni from "path/to/profile.gr"
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">G1</span></code> and <code class="docutils literal notranslate"><span class="pre">exp_ni</span></code> are the identifiers used in the macro to refer to the
@@ -162,7 +168,7 @@ that are defined in the profile file.</p>
 <li><p>Create the refinement equation.</p></li>
 </ol>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>create equation variables s0
-set equation as &quot;G1*s0&quot;
+set equation as "G1*s0"
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">G1</span></code> is the identifier for the structure file loaded earlier. In the
@@ -171,7 +177,7 @@ equation, it represents the PDF data generated from the structure <cite>G1</cite
 <ol class="arabic simple" start="5">
 <li><p>Store the results.</p></li>
 </ol>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>save to &quot;output_results.json&quot;
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>save to "output_results.json"
 </pre></div>
 </div>
 <p>The results of the refinement will be saved to a file
@@ -231,6 +237,64 @@ by default. To specify the agent skill, use the <code class="docutils literal no
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diffpy-app<span class="w"> </span>agentify<span class="w"> </span>--update
 </pre></div>
 </div>
+</section>
+<section id="how-to-use-the-local-diffpy-mcp-server">
+<span id="cmi"></span><h2>How to use the local DiffPy MCP server<a class="headerlink" href="#how-to-use-the-local-diffpy-mcp-server" title="Link to this heading"></a></h2>
+<p>An MCP server is a bundle of tools, skills, and prompts. To use the the MCP
+server, users need to connect it to a LLM based-agent,
+such as <code class="docutils literal notranslate"><span class="pre">Claude</span> <span class="pre">Code</span> <span class="pre">Desktop</span></code>, and the agent will decide when and how to
+interact with the MCP server in the conversation with users.</p>
+<section id="connect-to-claude-code-desktop">
+<h3>Connect to Claude Code Desktop<a class="headerlink" href="#connect-to-claude-code-desktop" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>Install <code class="docutils literal notranslate"><span class="pre">Claude</span> <span class="pre">Code</span> <span class="pre">Desktop</span></code> (hereafter referred to as <code class="docutils literal notranslate"><span class="pre">Claude</span></code>).</p></li>
+<li><p>Open <code class="docutils literal notranslate"><span class="pre">Claude</span></code> and open “Settings”.</p></li>
+<li><p>Navigate to the “Developer” section.</p></li>
+<li><p>In the “Local MCP servers” region, click “Edit Config”.</p></li>
+<li><p>Add the following configuration:</p></li>
+</ol>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="nt">"mcpServers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">   </span><span class="nt">"diffpy.apps"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">     </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;path/to/python&gt;"</span><span class="p">,</span>
+<span class="w">     </span><span class="nt">"args"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">       </span><span class="s2">"-m"</span><span class="p">,</span><span class="w"> </span><span class="s2">"diffpy.apps.refinebase.refinement_server"</span>
+<span class="w">     </span><span class="p">]</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="w"> </span><span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The expected <code class="docutils literal notranslate"><span class="pre">&lt;path/to/python&gt;</span></code> depends on the environment where
+<code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code> is installed.</p>
+<p>e.g. For conda environments, <code class="docutils literal notranslate"><span class="pre">&lt;path/to/python&gt;</span></code> can be found by</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>activate<span class="w"> </span>diffpy_apps_env
+which<span class="w"> </span>python
+</pre></div>
+</div>
+</div>
+<ol class="arabic simple" start="5">
+<li><p>Restart the <code class="docutils literal notranslate"><span class="pre">Claude</span></code>.</p></li>
+</ol>
+<p>6. Go to the “Local MCP servers” section and verify that the
+<code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code> server is listed and active.</p>
+</section>
+<section id="how-to-use-the-mcp-server">
+<h3>How to use the MCP server<a class="headerlink" href="#how-to-use-the-mcp-server" title="Link to this heading"></a></h3>
+<p>Once you have updated the configuration files successfully, <code class="docutils literal notranslate"><span class="pre">Claude</span></code>
+will connect to the local DiffPy MCP server automatically whenever you open it.</p>
+<p>Here is a simple example of conducting Ni structure refinement.</p>
+<p>1. Download the <a class="reference download internal" download="" href="_downloads/f70ec6d011dc482810241fe8d1a84481/Ni.gr"><code class="xref download docutils literal notranslate"><span class="pre">Ni.gr</span></code></a> and <a class="reference download internal" download="" href="_downloads/b397b396aa4d6a2deb678943beb3fb18/Ni.cif"><code class="xref download docutils literal notranslate"><span class="pre">Ni.cif</span></code></a>
+files to your working directory.</p>
+<p>2. Open <code class="docutils literal notranslate"><span class="pre">Claude</span></code>, launch the “Code” tab or select “Cowork” in “Chat or Cowork”
+tab.</p>
+<ol class="arabic simple" start="3">
+<li><p>Add the working directory folder to the <code class="docutils literal notranslate"><span class="pre">Claude</span></code>.</p></li>
+</ol>
+<p>4. Start your conversation! For example, try to ask
+“Tell me what can diffpy.apps do and how it can help me refine the
+Ni.cif against the Ni.gr.”</p>
+</section>
 </section>
 </section>
 
