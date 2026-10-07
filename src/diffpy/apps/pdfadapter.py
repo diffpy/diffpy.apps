@@ -202,7 +202,6 @@ class PDFAdapter:
         delta1 and delta2 variables, and structure parameters
         constrained by the space group.
         """
-
         recipe = FitRecipe()
         recipe.add_contribution(self.contribution)
         qdamp = recipe.create_new_variable("qdamp", fixed=False, value=0.04)

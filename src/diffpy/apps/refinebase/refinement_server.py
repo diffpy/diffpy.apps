@@ -102,7 +102,8 @@ async def set_profile_calculation_range(
     xmax: Annotated[float, "End of the calculation range"] = None,
     dx: Annotated[float, "Step size for the calculation range"] = None,
 ) -> str:
-    """Set the calculation range for a profile in the refinement session."""
+    """Set the calculation range for a profile in the refinement
+    session."""
     session.set_profile_calculation_range(
         profile_name, xmin=xmin, xmax=xmax, dx=dx
     )
@@ -191,8 +192,8 @@ async def add_pdf_model(
         bool, "Whether to run the PDF model in parallel"
     ] = True,
 ) -> str:
-    """
-    Add a structure-file-based parametric model to the refinement session.
+    """Add a structure-file-based parametric model to the refinement
+    session.
 
     Parameters
     ----------
@@ -247,8 +248,7 @@ async def add_function_model(
         list[str] | None, "Argument names for the function"
     ] = None,
 ) -> str:
-    """
-    Add a function model to the refinement session.
+    """Add a function model to the refinement session.
 
     function can be either a callable or a string representing
     the pre-defined function.
@@ -282,7 +282,8 @@ async def set_model_equation(
     model_name: Annotated[str, "Name of the parametric model"],
     equation: Annotated[str, "New equation for the parametric model"],
 ) -> str:
-    """Set the equation for an existing parametric model in the session."""
+    """Set the equation for an existing parametric model in the
+    session."""
     session.set_model_equation(model_name=model_name, equation=equation)
     return f"Equation for model {model_name} set successfully."
 
@@ -339,7 +340,8 @@ async def set_model_profile(
     model_name: Annotated[str, "Name of the parametric model"],
     profile_name: Annotated[str, "Name of the profile to set on the model"],
 ) -> str:
-    """Set the profile for a parametric model in the refinement session."""
+    """Set the profile for a parametric model in the refinement
+    session."""
     session.set_model_profile(model_name, profile_name)
     return f"Profile {profile_name} set for model {model_name} successfully."
 
@@ -365,7 +367,8 @@ async def get_profile_data(
     profile_name: Annotated[str, "Name of the profile to retrieve"],
     data_path: Annotated[str, "Path to the data to retrieve"],
 ) -> str:
-    """Get the details of a specific profile in the refinement session."""
+    """Get the details of a specific profile in the refinement
+    session."""
     profile = session.profiles_dict[profile_name]
     data = {"xobs": profile.xobs.tolist(), "yobs": profile.yobs.tolist()}
     with open(data_path, "w") as f:
@@ -395,8 +398,8 @@ async def constrain_pdf_model_space_group_symmetry(
 ) -> str:
     """Constrain a parametric model to a specific space group symmetry.
 
-    If no space group is provided, the model will be constrained to
-    its current space group parsed from its structure.
+    If no space group is provided, the model will be constrained to its
+    current space group parsed from its structure.
     """
     session.constrain_pdf_model_space_group_symmetry(model_name, space_group)
     return (
@@ -428,9 +431,8 @@ async def combine_models(
         list[str], "Names of the child parametric models"
     ],
 ) -> str:
-    """
-    Combine two parametric models by registering the child to the parent model.
-    """
+    """Combine two parametric models by registering the child to the
+    parent model."""
     session.combine_models(parent_model_name, child_model_names)
     return (
         f"Models {parent_model_name} and "
@@ -445,9 +447,7 @@ async def set_variables_value(
         dict, "Mapping of variable names to the values to set them to"
     ],
 ) -> str:
-    """
-    Set the value of a specific variable in a parametric model.
-    """
+    """Set the value of a specific variable in a parametric model."""
     session.set_variables_value(name_value_dict)
 
     return f"Variables '{name_value_dict}' are set."
@@ -458,9 +458,7 @@ async def set_variables_value(
 async def get_variable(
     variable_name: Annotated[str, "Name of the variable"],
 ) -> str:
-    """
-    Get the value of a specific variable in a parametric model.
-    """
+    """Get the value of a specific variable in a parametric model."""
     variable = session.get_variable(variable_name)
     return f"Variable '{variable_name}': {variable['value']}"
 
@@ -473,9 +471,7 @@ async def list_model_parameters(
         bool, "Whether to list only independent parameters"
     ] = True,
 ) -> str:
-    """
-    List all parameters of a specific parametric model.
-    """
+    """List all parameters of a specific parametric model."""
     if model_name not in session.models_dict:
         raise ValueError(f"Model with ID {model_name} does not exist.")
 
@@ -495,9 +491,7 @@ async def list_model_parameters(
 @mcp.tool()
 @tool_errors
 async def clear() -> str:
-    """
-    Clear the current refinement session.
-    """
+    """Clear the current refinement session."""
     session.clear()
     return "Refinement session cleared successfully."
 
@@ -507,9 +501,7 @@ async def clear() -> str:
 async def list_recipe_parameters(
     recipe_name: Annotated[str, "Name of the recipe"],
 ) -> str:
-    """
-    List all parameters of a specific recipe.
-    """
+    """List all parameters of a specific recipe."""
     if recipe_name not in session.recipes_dict:
         raise ValueError(f"Recipe with ID {recipe_name} does not exist.")
 
@@ -552,8 +544,8 @@ async def solve(
         bool, "Whether to also include sgpars from the models automatically"
     ] = False,
 ) -> str:
-    """
-    Initiate a refinement using the specified profiles, models, and variables.
+    """Initiate a refinement using the specified profiles, models, and
+    variables.
 
     Parameters
     ----------

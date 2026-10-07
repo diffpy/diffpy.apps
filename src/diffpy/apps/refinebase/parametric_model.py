@@ -199,8 +199,7 @@ class ParametricModelEquation(ParametricModel):
 
 class ParametricModelFunction(ParametricModel):
     def __init__(self, name, function, argnames=None):
-        """
-        Initialize a ParametricModelFunction instance.
+        """Initialize a ParametricModelFunction instance.
 
         function can be either a callable or a string representing
         the pre-defined function.
@@ -254,8 +253,7 @@ class ParametricModelPDF(ParametricModel):
         finite=False,
         run_parallel=True,
     ):
-        """
-        Create a ParametricModelPDF instance from a structure object.
+        """Create a ParametricModelPDF instance from a structure object.
 
         structure can be a raw diffpy.structure/pyobjcryst structure, or
         an existing DiffpyStructureParSet/ObjCrystCrystalParSet phase
@@ -615,10 +613,11 @@ def create_pdf_model_from_code(
     finite=False,
     run_parallel=True,
 ):
-    """Create a ParametricModelPDF by executing code that builds a structure.
+    """Create a ParametricModelPDF by executing code that builds a
+    structure.
 
-    The code must assign the structure/crystal object to a variable named
-    structure_name (default "structure") in its local namespace.
+    The code must assign the structure/crystal object to a variable
+    named structure_name (default "structure") in its local namespace.
     """
     local_namespace = {}
     exec(code, global_namespace, local_namespace)
