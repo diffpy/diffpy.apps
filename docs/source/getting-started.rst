@@ -191,12 +191,12 @@ How to use the local DiffPy MCP server
 
 An MCP server is a bundle of tools, skills, and prompts. To use the the MCP
 server, users need to connect it to a LLM based-agent,
-such as ``Claude Code Desktop``, and the agent will decide when and how to
+such as ``Claude Desktop``, and the agent will decide when and how to
 interact with the MCP server in the conversation with users.
 
-Connect to Claude Code Desktop
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-1. Install ``Claude Code Desktop`` (hereafter referred to as ``Claude``).
+Connect to Claude Desktop
+~~~~~~~~~~~~~~~~~~~~~~~~~
+1. Install ``Claude Desktop`` (hereafter referred to as ``Claude``).
 2. Open ``Claude`` and open "Settings".
 3. Navigate to the "Developer" section.
 4. In the "Local MCP servers" region, click "Edit Config".
@@ -230,10 +230,44 @@ Connect to Claude Code Desktop
 6. Go to the "Local MCP servers" section and verify that the
 ``diffpy.apps`` server is listed and active.
 
+.. figure:: img/claude_screenshot.png
+    :align: center
+
+    Figure 1: Screenshot of active ``diffpy.apps`` server in ``Claude``.
+
+
+Connect to ChatGPT Desktop
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+1. Install ``ChatGPT Desktop`` (hereafter referred to as ``ChatGPT``).
+2. Open ``~/.codex/config.toml``.
+3. Add the following configuration:
+
+.. code-block:: toml
+
+    [mcp_servers.diffpy_apps]
+    command =  "<path/to/python>"
+    args = ["-m", "diffpy.apps.refinebase.refinement_server"]
+
+Please see the section above on how to determine the correct
+``<path/to/python>`` for your environment.
+
+4. Restart the ``ChatGPT``.
+
+5. Open "Settings", and navigate to the "Integration" section. Open
+"Plugins" tab, and verify that the ``diffpy.apps`` server is listed in the
+"MCPs" field and active.
+
+.. figure:: img/chatgpt_screenshot.png
+    :align: center
+
+    Figure 2: Screenshot of active ``diffpy.apps`` server in ``ChatGPT``.
+
+
 How to use the MCP server
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-Once you have updated the configuration files successfully, ``Claude``
-will connect to the local DiffPy MCP server automatically whenever you open it.
+Once you have updated the configuration files successfully, agent like
+``Claude`` or ``ChatGPT`` will connect to the local DiffPy MCP server
+automatically whenever you open it.
 
 Here is a simple example of conducting Ni structure refinement.
 
