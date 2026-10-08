@@ -28,7 +28,7 @@ pytestmark = pytest.mark.skipif(
                 update=False,
             ),
             "cwd",
-            ".claude/skills/cmi-skill",
+            ".claude/skills/diffpy-playbook",
         ),
         # C2: diffpy.apps agentify --system
         #   Deploys system claude skill.
@@ -40,7 +40,7 @@ pytestmark = pytest.mark.skipif(
                 update=False,
             ),
             "home",
-            ".claude/skills/cmi-skill",
+            ".claude/skills/diffpy-playbook",
         ),
         # C3: diffpy.apps agentify --agent codex
         #   Deploys workspace codex skill.
@@ -52,7 +52,7 @@ pytestmark = pytest.mark.skipif(
                 update=False,
             ),
             "cwd",
-            ".codex/skills/cmi-skill",
+            ".codex/skills/diffpy-playbook",
         ),
         # C4: diffpy.apps agentify --agent codex --system
         #   Deploys system codex skill.
@@ -64,7 +64,7 @@ pytestmark = pytest.mark.skipif(
                 update=False,
             ),
             "home",
-            ".codex/skills/cmi-skill",
+            ".codex/skills/diffpy-playbook",
         ),
     ],
 )
@@ -94,14 +94,17 @@ def test_agentify_update():
                 update=False,
             )
             agentify(args)
-            skill_path = Path(tmp) / "cwd" / ".claude" / "skills" / "cmi-skill"
+            skill_path = (
+                Path(tmp) / "cwd" / ".claude" / "skills" / "diffpy-playbook"
+            )
             assert skill_path.exists()
             args.update = True
             agentify(args)
             pytest.raises(
                 FileExistsError,
                 match=re.escape(
-                    f"Agentic skill cmi-skill already exists at {skill_path}. "
+                    "Agentic skill diffpy-playbook already exists at "
+                    f"{skill_path}. "
                     "To overwrite, pass '--update' flag to update the skill"
                 ),
             )
