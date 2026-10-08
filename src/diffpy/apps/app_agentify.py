@@ -2,10 +2,10 @@ import shutil
 import socket
 import subprocess
 import tempfile
+import warnings
 from pathlib import Path
 
 REPO_URL = "https://github.com/diffpy/cmi-agent-skills"
-DIR_NAME = "cmi-skill"
 
 
 def ensure_setup():
@@ -35,21 +35,31 @@ def agentify(args):
     elif agent == "codex":
         skills_dir = ".codex/skills"
     if system_flag:
-        destination = Path().home() / skills_dir / DIR_NAME
+        dest_dir = Path().home() / skills_dir
     else:
-        destination = Path().cwd() / skills_dir / DIR_NAME
-    if destination.exists() and not args.update:
-        raise FileExistsError(
-            f"Agentic skill {DIR_NAME} already exists at {destination}. "
-            "To overwrite, pass '--update' flag to update the skill"
-        )
+        dest_dir = Path().cwd() / skills_dir
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
         subprocess.run(
             ["git", "clone", REPO_URL, str(tmp_path)],
             check=True,
         )
-        if destination.exists():
-            shutil.rmtree(destination)
-        shutil.copytree(tmp_path / DIR_NAME, destination, dirs_exist_ok=True)
-    print(f"Agentic skill {DIR_NAME} has been deployed to {destination}")
+        for item in tmp_path.iterdir():
+            if item.is_dir():
+                destination = dest_dir / item.name
+                if destination.exists():
+                    if args.update:
+                        shutil.rmtree(destination)
+                        shutil.copytree(item, destination, dirs_exist_ok=True)
+                        print(f"Updated existing skill at {destination}")
+                    else:
+                        warnings.warn(
+                            f"Skill at {destination} already exists. "
+                            "Use '--update' flag to overwrite."
+                        )
+                        continue
+                else:
+                    shutil.copytree(item, destination, dirs_exist_ok=True)
+                    print(
+                        f"Skill {item.name} has been deployed to {destination}"
+                    )
