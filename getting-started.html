@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Getting started &mdash; diffpy.apps 0.2.0rc0 documentation</title>
+  <title>Getting started &mdash; diffpy.apps 0.2.0rc1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -14,7 +14,7 @@
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=4ee4825d"></script>
+      <script src="_static/documentation_options.js?v=e7a4f63b"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -53,7 +53,8 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#use-agentify-to-deploy-agent-skills-diffpy-cmi">Use <code class="docutils literal notranslate"><span class="pre">agentify</span></code> to deploy agent skills <code class="docutils literal notranslate"><span class="pre">diffpy.cmi</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#how-to-use-the-local-diffpy-mcp-server">How to use the local DiffPy MCP server</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#connect-to-claude-code-desktop">Connect to Claude Code Desktop</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#connect-to-claude-desktop">Connect to Claude Desktop</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#connect-to-chatgpt-desktop">Connect to ChatGPT Desktop</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#how-to-use-the-mcp-server">How to use the MCP server</a></li>
 </ul>
 </li>
@@ -242,12 +243,12 @@ by default. To specify the agent skill, use the <code class="docutils literal no
 <span id="cmi"></span><h2>How to use the local DiffPy MCP server<a class="headerlink" href="#how-to-use-the-local-diffpy-mcp-server" title="Link to this heading"></a></h2>
 <p>An MCP server is a bundle of tools, skills, and prompts. To use the the MCP
 server, users need to connect it to a LLM based-agent,
-such as <code class="docutils literal notranslate"><span class="pre">Claude</span> <span class="pre">Code</span> <span class="pre">Desktop</span></code>, and the agent will decide when and how to
+such as <code class="docutils literal notranslate"><span class="pre">Claude</span> <span class="pre">Desktop</span></code>, and the agent will decide when and how to
 interact with the MCP server in the conversation with users.</p>
-<section id="connect-to-claude-code-desktop">
-<h3>Connect to Claude Code Desktop<a class="headerlink" href="#connect-to-claude-code-desktop" title="Link to this heading"></a></h3>
+<section id="connect-to-claude-desktop">
+<h3>Connect to Claude Desktop<a class="headerlink" href="#connect-to-claude-desktop" title="Link to this heading"></a></h3>
 <ol class="arabic simple">
-<li><p>Install <code class="docutils literal notranslate"><span class="pre">Claude</span> <span class="pre">Code</span> <span class="pre">Desktop</span></code> (hereafter referred to as <code class="docutils literal notranslate"><span class="pre">Claude</span></code>).</p></li>
+<li><p>Install <code class="docutils literal notranslate"><span class="pre">Claude</span> <span class="pre">Desktop</span></code> (hereafter referred to as <code class="docutils literal notranslate"><span class="pre">Claude</span></code>).</p></li>
 <li><p>Open <code class="docutils literal notranslate"><span class="pre">Claude</span></code> and open “Settings”.</p></li>
 <li><p>Navigate to the “Developer” section.</p></li>
 <li><p>In the “Local MCP servers” region, click “Edit Config”.</p></li>
@@ -278,11 +279,45 @@ which<span class="w"> </span>python
 </ol>
 <p>6. Go to the “Local MCP servers” section and verify that the
 <code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code> server is listed and active.</p>
+<figure class="align-center" id="id2">
+<img alt="_images/claude_screenshot.png" src="_images/claude_screenshot.png" />
+<figcaption>
+<p><span class="caption-text">Figure 1: Screenshot of active <code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code> server in <code class="docutils literal notranslate"><span class="pre">Claude</span></code>.</span><a class="headerlink" href="#id2" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+</section>
+<section id="connect-to-chatgpt-desktop">
+<h3>Connect to ChatGPT Desktop<a class="headerlink" href="#connect-to-chatgpt-desktop" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>Install <code class="docutils literal notranslate"><span class="pre">ChatGPT</span> <span class="pre">Desktop</span></code> (hereafter referred to as <code class="docutils literal notranslate"><span class="pre">ChatGPT</span></code>).</p></li>
+<li><p>Open <code class="docutils literal notranslate"><span class="pre">~/.codex/config.toml</span></code>.</p></li>
+<li><p>Add the following configuration:</p></li>
+</ol>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[mcp_servers.diffpy_apps]</span>
+<span class="n">command</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="s2">"&lt;path/to/python&gt;"</span>
+<span class="n">args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"-m"</span><span class="p">,</span><span class="w"> </span><span class="s2">"diffpy.apps.refinebase.refinement_server"</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Please see the section above on how to determine the correct
+<code class="docutils literal notranslate"><span class="pre">&lt;path/to/python&gt;</span></code> for your environment.</p>
+<ol class="arabic simple" start="4">
+<li><p>Restart the <code class="docutils literal notranslate"><span class="pre">ChatGPT</span></code>.</p></li>
+</ol>
+<p>5. Open “Settings”, and navigate to the “Integration” section. Open
+“Plugins” tab, and verify that the <code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code> server is listed in the
+“MCPs” field and active.</p>
+<figure class="align-center" id="id3">
+<img alt="_images/chatgpt_screenshot.png" src="_images/chatgpt_screenshot.png" />
+<figcaption>
+<p><span class="caption-text">Figure 2: Screenshot of active <code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code> server in <code class="docutils literal notranslate"><span class="pre">ChatGPT</span></code>.</span><a class="headerlink" href="#id3" title="Link to this image"></a></p>
+</figcaption>
+</figure>
 </section>
 <section id="how-to-use-the-mcp-server">
 <h3>How to use the MCP server<a class="headerlink" href="#how-to-use-the-mcp-server" title="Link to this heading"></a></h3>
-<p>Once you have updated the configuration files successfully, <code class="docutils literal notranslate"><span class="pre">Claude</span></code>
-will connect to the local DiffPy MCP server automatically whenever you open it.</p>
+<p>Once you have updated the configuration files successfully, agent like
+<code class="docutils literal notranslate"><span class="pre">Claude</span></code> or <code class="docutils literal notranslate"><span class="pre">ChatGPT</span></code> will connect to the local DiffPy MCP server
+automatically whenever you open it.</p>
 <p>Here is a simple example of conducting Ni structure refinement.</p>
 <p>1. Download the <a class="reference download internal" download="" href="_downloads/f70ec6d011dc482810241fe8d1a84481/Ni.gr"><code class="xref download docutils literal notranslate"><span class="pre">Ni.gr</span></code></a> and <a class="reference download internal" download="" href="_downloads/b397b396aa4d6a2deb678943beb3fb18/Ni.cif"><code class="xref download docutils literal notranslate"><span class="pre">Ni.cif</span></code></a>
 files to your working directory.</p>
