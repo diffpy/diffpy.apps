@@ -12,8 +12,8 @@ from diffpy.srfit.fitbase import (
     Profile,
 )
 from diffpy.srfit.pdf import PDFGenerator, PDFParser
-from diffpy.srfit.structure import constrainAsSpaceGroup
-from diffpy.structure.parsers import getParser
+from diffpy.srfit.structure import constrain_as_space_group
+from diffpy.structure.parsers import get_parser
 
 
 class PDFAdapter:
@@ -147,7 +147,7 @@ class PDFAdapter:
                 run_parallel = False
         for i, structure_path in enumerate(structure_paths):
             name = names[i] if names and i < len(names) else f"G{i+1}"
-            stru_parser = getParser("cif")
+            stru_parser = get_parser("cif")
             structure = stru_parser.parse(Path(structure_path).read_text())
             sg = getattr(stru_parser, "spacegroup", None)
             spacegroup = sg.short_name if sg is not None else "P1"
@@ -176,7 +176,7 @@ class PDFAdapter:
         ----------
         equation : list of str, optional
             The list of a single equation passed to
-            FitContribution.setEquation.
+            FitContribution.set_equation
 
         Returns
         -------
@@ -220,7 +220,9 @@ class PDFAdapter:
             recipe.add_constraint(pdfgenerator.qdamp, qdamp)
             recipe.add_constraint(pdfgenerator.qbroad, qbroad)
             stru_parset = pdfgenerator.phase
-            spacegroupparams = constrainAsSpaceGroup(stru_parset, spacegroup)
+            spacegroupparams = constrain_as_space_group(
+                stru_parset, spacegroup
+            )
             for par in spacegroupparams.xyzpars:
                 recipe.add_variable(
                     par, name=f"{pdfgenerator.name}_{par.name}", fixed=False

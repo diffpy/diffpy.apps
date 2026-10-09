@@ -39,5 +39,5 @@ def sine_profile():
     xobs = numpy.linspace(-numpy.pi, numpy.pi, 100)
     yobs = numpy.sin(xobs) + 1e-3 * numpy.random.normal(size=xobs.shape)
     sine_profile = Profile()
-    sine_profile.setObservedProfile(xobs, yobs)
+    sine_profile.set_observed_profile(xobs, yobs)
     return sine_profile
