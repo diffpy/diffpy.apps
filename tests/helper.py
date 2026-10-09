@@ -10,8 +10,8 @@ from diffpy.srfit.fitbase import (
     Profile,
 )
 from diffpy.srfit.pdf import DebyePDFGenerator, PDFGenerator, PDFParser
-from diffpy.srfit.structure import constrainAsSpaceGroup
-from diffpy.structure.parsers import getParser
+from diffpy.srfit.structure import constrain_as_space_group
+from diffpy.structure.parsers import get_parser
 
 _DATA_DIR = Path(__file__).parent / "data"
 
@@ -49,21 +49,21 @@ def run_ni_example():
     QBROAD_I = 0.02
     RUN_PARALLEL = True
 
-    p_cif = getParser("cif")
-    stru1 = p_cif.parseFile(structure_path)
+    p_cif = get_parser("cif")
+    stru1 = p_cif.parse_file(structure_path)
     sg = p_cif.spacegroup.short_name
     profile = Profile()
     parser = PDFParser()
-    parser.parseFile(profile_path)
-    profile.loadParsedData(parser)
-    profile.setCalculationRange(xmin=PDF_RMIN, xmax=PDF_RMAX, dx=PDF_RSTEP)
+    parser.parse_file(profile_path)
+    profile.load_parsed_data(parser)
+    profile.set_calculation_range(xmin=PDF_RMIN, xmax=PDF_RMAX, dx=PDF_RSTEP)
     generator_crystal1 = PDFGenerator("G1")
     generator_crystal1.setStructure(stru1, periodic=True)
     generator_crystal1.setQmax(QMAX)
     generator_crystal1.setQmin(QMIN)
     generator_crystal1.delta2.value = DELTA2_I
     contribution = FitContribution("crystal")
-    contribution.addProfileGenerator(generator_crystal1)
+    contribution.add_profile_generator(generator_crystal1)
     if RUN_PARALLEL:
         try:
             import multiprocessing
@@ -82,28 +82,28 @@ def run_ni_example():
                 "\nYou don't appear to have the necessary packages for "
                 "parallelization"
             )
-    contribution.setProfile(profile, xname="r")
-    contribution.setEquation("s0*G1")
+    contribution.set_profile(profile, xname="r")
+    contribution.set_equation("s0*G1")
     recipe = FitRecipe()
-    recipe.addContribution(contribution)
+    recipe.add_contribution(contribution)
     recipe.crystal.G1.qdamp.value = QDAMP_I
     recipe.crystal.G1.qbroad.value = QBROAD_I
     recipe.crystal.G1.setQmax(QMAX)
     recipe.crystal.G1.setQmin(QMIN)
-    recipe.addVar(contribution.s0, SCALE_I, name="s0")
-    spacegroupparams = constrainAsSpaceGroup(generator_crystal1.phase, sg)
+    recipe.add_variable(contribution.s0, SCALE_I, name="s0")
+    spacegroupparams = constrain_as_space_group(generator_crystal1.phase, sg)
     for par in spacegroupparams.latpars:
-        recipe.addVar(par, value=CUBICLAT_I, fixed=False, name="G1_a")
+        recipe.add_variable(par, value=CUBICLAT_I, fixed=False, name="G1_a")
     for par in spacegroupparams.adppars:
-        recipe.addVar(par, value=UISO_I, fixed=False, name="G1_Uiso_0")
-    recipe.addVar(generator_crystal1.delta2, name="G1_delta2")
-    recipe.addVar(
+        recipe.add_variable(par, value=UISO_I, fixed=False, name="G1_Uiso_0")
+    recipe.add_variable(generator_crystal1.delta2, name="G1_delta2")
+    recipe.add_variable(
         generator_crystal1.qdamp,
         fixed=False,
         name="qdamp",
         value=QDAMP_I,
     )
-    recipe.addVar(
+    recipe.add_variable(
         generator_crystal1.qbroad,
         fixed=False,
         name="qbroad",

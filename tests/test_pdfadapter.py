@@ -37,7 +37,9 @@ def test_pdfadapter():
     adapter.initialize_structures([str(structure_path)])
     adapter.initialize_contribution(equation=["s0*G1"])
     adapter.initialize_recipe()
-    adapter.recipe.addVar(list(adapter.recipe._contributions.values())[0].s0)
+    adapter.recipe.add_variable(
+        list(adapter.recipe._contributions.values())[0].s0
+    )
     adapter.set_initial_variable_values(initial_pv_dict)
     adapter.recipe.fix("all")
     for var in variables_to_refine:

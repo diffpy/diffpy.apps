@@ -644,8 +644,8 @@ def create_pdf_model_from_code(
             if hasattr(structure, "GetCrystal")
             else structure
         )
-        if hasattr(crystal, "GetSpaceGroup"):
-            spacegroup_symbol = crystal.GetSpaceGroup().GetName()
+        if hasattr(crystal, "get_space_group"):
+            spacegroup_symbol = crystal.get_space_group().get_name()
         else:
             logging.warning(
                 "Could not determine a space group for the structure named "

@@ -67,7 +67,7 @@ class RefinementSession:
         if profile_name is None:
             profile_name = str(uuid.uuid4())
         profile = Profile()
-        profile.setObservedProfile(xobs=xarray, yobs=yarray, dyobs=dy)
+        profile.set_observed_profile(xobs=xarray, yobs=yarray, dyobs=dy)
         profile.xpar.name = xname
         profile._xname = xname
         profile.ypar.name = yname
@@ -531,7 +531,7 @@ class RefinementSession:
                 par = self.get_variable(eq_or_var_name)["obj"]
                 par.bound_range(lb, ub)
         recipe.free("all")
-        leastsq(recipe.residual, recipe.getValues())
+        leastsq(recipe.residual, recipe.get_values())
         # NOTE: non-scalar value will raise error in `get_results_string`
         try:
             result_string = FitResults(recipe).get_results_string()

@@ -13,8 +13,8 @@
   "package_dir_name": "diffpy.apps",
   "project_short_description": "User applications to help with tasks using diffpy packages",
   "project_keywords": "diffraction, PDF, X-ray, neutron",
-  "minimum_supported_python_version": "3.11",
-  "maximum_supported_python_version": "3.13",
+  "minimum_supported_python_version": "3.12",
+  "maximum_supported_python_version": "3.14",
   "project_needs_c_code_compiled": "No",
   "project_has_gui_tests": "No"
 }
