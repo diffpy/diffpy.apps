@@ -15,7 +15,12 @@ Getting started
 
 Welcome to the ``diffpy.apps`` documentation!
 
-To get started, please visit the :ref:`Getting started <getting-started>` page.
+``diffpy.apps`` provides user a simpler interface to interact with diffpy
+packages while retaining most of their flexibility. Currently it provides:
+
+1. Macro interface for PDF refinements. See :doc:`diffpy-macro`.
+2. Agent interface for PDF refinements. See :doc:`diffpy-agent`.
+
 
 =======
 Authors
@@ -28,8 +33,14 @@ https://github.com/diffpy/diffpy.apps/graphs/contributors.
 Installation
 ============
 
-See the `README <https://github.com/diffpy/diffpy.apps#installation>`_
-file included with the distribution.
+We recommend installing ``diffpy.apps`` using `conda <https://docs.conda.io/en/latest/>`_.
+
+.. code-block:: bash
+
+   conda create -n diffpy_mcp
+   conda activate diffpy_mcp
+   conda install -c conda-forge diffpy.apps
+
 
 ================
 Acknowledgements
@@ -43,7 +54,8 @@ Table of contents
 .. toctree::
    :maxdepth: 2
 
-   getting-started
+   diffpy-agent
+   diffpy-macro
    release
    license
 
