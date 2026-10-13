@@ -7,6 +7,39 @@ which mainly utilizes the "tool" concept applied in most agent frameworks.
 After connecting these tools to an agent, users can invoke DiffPy
 functionalities and automate PDF refinements through conversation.
 
+To better understand the convenience Diffpy Agent Interface brought, 
+let's consider the following scenario:
+
+Without Diffpy Agent:
+
+1. Mr Neutron copies the structure and data file inside working directory.
+
+2. Mr Neutron writes ``diffpy.cmi`` script to set the refinement configuration.
+
+3. According to the results, Mr Neutron adjusts the script accordingly.
+
+4. Repeat steps 2 and 3 until the refinement results are satisfactory.
+
+During the process, Mr Neutron has to keep track of multiple versions of 
+the script and their results to navigate the best refinement strategy.
+
+
+With Diffpy Agent:
+
+1. Mr Neutron connects the Diffpy tools to the agent.
+
+2. Mr Neutron copies the structure and data file inside the working directory.
+
+3. Mr Neutron asks the agent to perform the refinement
+
+4. According the results, Mr Neutron tells agent to adjust the refinement settings *in few words*.
+
+5. Repeat steps 3 and 4 until the refinement results are satisfactory.
+
+During the process, all inputs and outputs are saved in the conversation. All
+information are in their most readable manner, and well-organized for easy reference.
+
+
 .. _mcp_setup:
 
 Installation and Setup
