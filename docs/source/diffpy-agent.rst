@@ -7,18 +7,17 @@ which mainly utilizes the "tool" concept applied in most agent frameworks.
 After connecting these tools to an agent, users can invoke DiffPy
 functionalities and automate PDF refinements through conversation.
 
+After you have installed ``diffpy.apps``, the next step is to connect it to
+your local agent. ``diffpy.apps`` server should be able to connect to any
+Desktop agent that supports the MCP (Model Context Protocol), and we have provided
+instructions for :ref:`connect_claude_desktop` and :ref:`connect_chatgpt_desktop` below.
+
 .. _mcp_setup:
 
-Installation and Setup
-----------------------
+Setup
+-----
 
-Specifically, all Diffpy functionalities are exposed as MCP server endpoints.
-An MCP server is a bundle of tools, skills, and prompts. Because Diffpy
-functionalities are currently expected to be run locally, the MCP server
-needs to be connected to a local Desktop agent, such as
-``Claude Desktop`` or ``ChatGPT Desktop``.
-
-
+.. _connect_claude_desktop:
 Connect to Claude Desktop
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 1. Copy the path to the conda executable. There are many commands available,
@@ -117,6 +116,7 @@ would look like this:
     Figure 2: Screenshot of active ``diffpy.apps`` server in ``Claude``.
 
 
+.. _connect_chatgpt_desktop:
 Connect to ChatGPT Desktop
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 1. Copy the path to the conda executable. There are many commands available,
