@@ -22,7 +22,9 @@ def test_bonds():
     session.add_profile_from_arrays(
         profile_name="linear", xarray=xarray, yarray=yarray
     )
-    session.add_equation_model(model_name="linear_model", equation_str="m*x")
+    session.add_equation_model(
+        model_name="linear_model", equation_string="m*x"
+    )
     session.set_variables_value(
         {
             "linear_model.m": 1,
@@ -61,8 +63,8 @@ def test_bonds():
 def test_refine_sine(sine_profile):
     # C1: Refinement session without additional calculator or functions
     session = RefinementSession()
-    session.add_equation_model(model_name="sub", equation_str="a*x")
-    session.add_equation_model(model_name="main", equation_str="A*sin(sub)")
+    session.add_equation_model(model_name="sub", equation_string="a*x")
+    session.add_equation_model(model_name="main", equation_string="A*sin(sub)")
     session.combine_models(parent_model_name="main", child_model_names=["sub"])
     session.set_variables_value(
         name_value_dict={
@@ -109,6 +111,7 @@ def test_refine_ni():
     session.add_pdf_model(
         model_name="pdf",
         structure_file_path=str(_DATA_DIR / "Ni.cif"),
+        finite=False,
     )
     session.constrain_pdf_model_space_group_symmetry(
         model_name="pdf", space_group="Fm-3m"
@@ -155,7 +158,7 @@ def test_refine_ni():
     session.set_variables_value({"pdf.scale": 1})
     session.add_equation_model(
         model_name="ni_model",
-        equation_str="s*pdf",
+        equation_string="s*pdf",
     )
     session.combine_models(
         parent_model_name="ni_model", child_model_names=["pdf"]
@@ -223,28 +226,33 @@ def test_refine_multi_contribution():
     session.add_pdf_model(
         structure_file_path=str(_DATA_DIR / "Ni.cif"),
         model_name="pdf_ni",
+        finite=False,
     )
     session.constrain_pdf_model_space_group_symmetry("pdf_ni")
     session.add_pdf_model(
         from_model_name="pdf_ni",
         model_name="pdf_ni_neutron",
+        finite=False,
     )
     session.add_pdf_model(
         from_model_name="pdf_ni",
         model_name="pdf_ni_partial",
+        finite=False,
     )
     session.add_pdf_model(
         structure_file_path=str(_DATA_DIR / "si.cif"),
         model_name="pdf_si",
+        finite=False,
     )
     session.constrain_pdf_model_space_group_symmetry("pdf_si")
     session.add_pdf_model(
         from_model_name="pdf_si",
         model_name="pdf_si_partial",
+        finite=False,
     )
     session.add_equation_model(
         model_name="main",
-        equation_str="scale * (pdf_ni_partial + pdf_si_partial)",
+        equation_string="scale * (pdf_ni_partial + pdf_si_partial)",
     )
     session.combine_models(
         parent_model_name="main",
@@ -352,9 +360,10 @@ def test_refine_nanoparticle_example():
     session.add_pdf_model(
         model_name="pdf",
         structure_file_path=str(_DATA_DIR / "pb.cif"),
+        finite=False,
     )
     session.constrain_pdf_model_space_group_symmetry(model_name="pdf")
-    session.add_equation_model(model_name="main", equation_str="f*pdf")
+    session.add_equation_model(model_name="main", equation_string="f*pdf")
     session.combine_models(
         parent_model_name="main", child_model_names=["f", "pdf"]
     )

@@ -1,9 +1,10 @@
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from collections import OrderedDict
 from collections.abc import Callable
 
 import numpy
-from scipy.optimize import leastsq
+from scipy.optimize import least_squares
 
 from diffpy.apps.refinebase.parametric_model import (
     ParametricModelEquation,
@@ -22,6 +23,8 @@ class RefinementSession:
         self.recipes_dict = OrderedDict()
         self.profiles_dict = OrderedDict()
         self.models_dict = OrderedDict()
+        self.jobs_dict = {}
+        self._job_executor = ThreadPoolExecutor()
 
     def add_profile_from_file(
         self,
@@ -102,31 +105,26 @@ class RefinementSession:
         profile = self._get_profile(profile_name)
         profile.set_calculation_points(x)
 
-    def add_equation_model(self, model_name: str, equation_str=None):
+    def add_equation_model(self, model_name: str, equation_string: str):
         from diffpy.apps.refinebase.parametric_model import (
             ParametricModelEquation,
         )
 
         if model_name in self.models_dict:
             raise ValueError(f"Model with ID {model_name} already exists.")
-        if equation_str is not None:
-            model = ParametricModelEquation(model_name, equation_str)
-        else:
-            raise ValueError(
-                "Either equation_str or from_model must be provided."
-            )
+        model = ParametricModelEquation(model_name, equation_string)
         self.models_dict[model_name] = model
 
     def add_pdf_model(
         self,
         model_name: str,
+        finite: bool,
         structure_file_path=None,
         from_model_name=None,
         code=None,
         library="Diffpy",
-        global_namespace={},
+        global_namespace=None,
         local_structure_name="structure",
-        finite=False,
         run_parallel=True,
     ):
         from diffpy.apps.refinebase.parametric_model import (
@@ -154,6 +152,7 @@ class RefinementSession:
             pdf_model = create_pdf_model_from_model(
                 model_name,
                 from_model,
+                finite=finite,
                 run_parallel=run_parallel,
             )
         elif code is not None:
@@ -261,22 +260,17 @@ class RefinementSession:
             and model.calc_obj.profile is not None
         ):
             profile = Profile()
-            if isinstance(model.calc_obj, FitContribution):
-                profile.set_observed_profile(
-                    xobs=numpy.arange(xmin, xmax, dx),
-                    yobs=numpy.zeros_like(numpy.arange(xmin, xmax, dx)),
-                    xname=xname,
-                )
+            profile.set_observed_profile(
+                xobs=numpy.arange(xmin, xmax, dx),
+                yobs=numpy.zeros_like(numpy.arange(xmin, xmax, dx)),
+            )
+            if isinstance(model, ParametricModelEquation):
+                model.set_profile(profile, xname=xname)
             else:
-                # PDFGenerator uses profile.x, so it doesn't accept xname
-                profile.set_observed_profile(
-                    xobs=numpy.arange(xmin, xmax, dx),
-                    yobs=numpy.zeros_like(numpy.arange(xmin, xmax, dx)),
-                )
-            model.set_profile(profile)
+                model.set_profile(profile)
+        r = model.calc_obj.profile.x
         ycalc = model.evaluate()
-        model.calc_obj.profile = None
-        return ycalc
+        return r, ycalc
 
     def constrain_pdf_model_space_group_symmetry(
         self, model_name, space_group=None
@@ -473,6 +467,11 @@ class RefinementSession:
         weights=None,
         residual_equations=None,
         metas=None,
+        method="trf",
+        x_scale=1.0,
+        max_nfev=None,
+        ftol=1e-8,
+        xtol=1e-8,
     ):
         recipe = FitRecipe()
         self.recipes_dict[name] = recipe
@@ -531,13 +530,49 @@ class RefinementSession:
                 par = self.get_variable(eq_or_var_name)["obj"]
                 par.bound_range(lb, ub)
         recipe.free("all")
-        leastsq(recipe.residual, recipe.get_values())
+        result = least_squares(
+            recipe.residual,
+            recipe.get_values(),
+            method=method,
+            x_scale=x_scale,
+            max_nfev=max_nfev,
+            ftol=ftol,
+            xtol=xtol,
+        )
         # NOTE: non-scalar value will raise error in `get_results_string`
         try:
             result_string = FitResults(recipe).get_results_string()
         except TypeError:
             result_string = "Refinement Finished."
-        return result_string
+
+        if constraints:
+            for constraint_name, constraint_eq_str in constraints[1].items():
+                constraint_var = self.get_variable(constraint_name)["obj"]
+                recipe.unconstrain(constraint_var)
+        return {
+            "success": bool(result.success),
+            "status": int(result.status),
+            "message": result.message,
+            "nfev": int(result.nfev),
+            "cost": float(result.cost),
+            "result": result_string,
+        }
+
+    def get_job_status(self, job_id):
+        """Return the current status and result of a background solve."""
+        try:
+            job = self.jobs_dict[job_id]
+        except KeyError as exc:
+            raise ValueError(f"Job '{job_id}' not found.") from exc
+        return dict(job)
+
+    def list_running_jobs(self):
+        """Return background jobs that are pending or currently running."""
+        return [
+            dict(job)
+            for job in self.jobs_dict.values()
+            if job["status"] in {"pending", "running"}
+        ]
 
     def solve(
         self,
@@ -547,11 +582,21 @@ class RefinementSession:
         residual_equations=None,
         constraints=None,
         bounds=None,
-        name=uuid.uuid4(),
+        name=None,
         weights=None,
         metas=None,
         include_sgpars=False,
+        method="trf",
+        x_scale=1.0,
+        max_nfev=None,
+        ftol=1e-8,
+        xtol=1e-8,
+        background=False,
     ):
+        if name is None:
+            name = str(uuid.uuid4())
+        if variable_names is None:
+            variable_names = []
         profiles = []
         for profile_name in profile_names:
             if profile_name not in self.profiles_dict:
@@ -571,29 +616,56 @@ class RefinementSession:
         if include_sgpars:
             for model in models:
                 if isinstance(model, ParametricModelPDF):
-                    for sgpar_name in model.sgpar_names:
+                    for sgpar_name in model.free_sgpar_names:
                         if sgpar_name in variable_names:
                             continue
                         variable_names.append(sgpar_name)
                 else:
                     for submodel in model._submodels:
                         if isinstance(submodel, ParametricModelPDF):
-                            for sgpar_name in submodel.sgpar_names:
+                            for sgpar_name in submodel.free_sgpar_names:
                                 if sgpar_name in variable_names:
                                     continue
                                 variable_names.append(sgpar_name)
 
-        return self._solve(
-            profiles=profiles,
-            models=models,
-            variable_names=variable_names,
-            residual_equations=residual_equations,
-            constraints=constraints,
-            bounds=bounds,
-            name=name,
-            weights=weights,
-            metas=metas,
-        )
+        solve_args = {
+            "profiles": profiles,
+            "models": models,
+            "variable_names": variable_names,
+            "residual_equations": residual_equations,
+            "constraints": constraints,
+            "bounds": bounds,
+            "name": name,
+            "weights": weights,
+            "metas": metas,
+            "method": method,
+            "x_scale": x_scale,
+            "max_nfev": max_nfev,
+            "ftol": ftol,
+            "xtol": xtol,
+        }
+        if not background:
+            return self._solve(**solve_args)
+
+        job_id = str(uuid.uuid4())
+        self.jobs_dict[job_id] = {
+            "job_id": job_id,
+            "status": "pending",
+            "result": None,
+            "error": None,
+        }
+
+        def run_job():
+            self.jobs_dict[job_id]["status"] = "running"
+            try:
+                self.jobs_dict[job_id]["result"] = self._solve(**solve_args)
+                self.jobs_dict[job_id]["status"] = "completed"
+            except Exception as exc:
+                self.jobs_dict[job_id]["error"] = str(exc)
+                self.jobs_dict[job_id]["status"] = "failed"
+
+        self._job_executor.submit(run_job)
+        return job_id
 
     def plot(self):
         # NOTE: to be implemented

@@ -146,8 +146,8 @@ async def remove_profile(
 @mcp.tool()
 @tool_errors
 async def add_equation_model(
+    equation_string: Annotated[str, "Equation for the parametric model"],
     model_name: Annotated[str, "Name of the parametric model"] = uuid.uuid4(),
-    equation_str: Annotated[str, "Equation for the parametric model"] = None,
 ) -> str:
     """Add an equation-based parametric model to the refinement session.
 
@@ -155,11 +155,11 @@ async def add_equation_model(
     ----------
     model_name : str
         Name of the parametric model to add.
-    equation_str : str, optional
+    equation_string : str
         Equation for the parametric model. e.g. "a * x + b"
     """
     session.add_equation_model(
-        equation_str=equation_str,
+        equation_string=equation_string,
         model_name=model_name,
     )
     return f"Model {model_name} added successfully."
@@ -168,6 +168,9 @@ async def add_equation_model(
 @mcp.tool()
 @tool_errors
 async def add_pdf_model(
+    finite: Annotated[
+        bool, "Whether to use DebyePDFGenerator instead of PDFGenerator"
+    ],
     model_name: Annotated[str, "Name of the parametric model"] = uuid.uuid4(),
     structure_file_path: Annotated[str, "Path to the structure file"] = None,
     from_model_name: Annotated[
@@ -181,13 +184,10 @@ async def add_pdf_model(
     ] = "Diffpy",
     global_namespace: Annotated[
         dict, "Global namespace to execute 'code' in"
-    ] = {},
+    ] = None,
     local_structure_name: Annotated[
         str, "Name of the structure variable assigned by 'code'"
     ] = "structure",
-    finite: Annotated[
-        bool, "Whether to use DebyePDFGenerator instead of PDFGenerator"
-    ] = False,
     run_parallel: Annotated[
         bool, "Whether to run the PDF model in parallel"
     ] = True,
@@ -292,7 +292,9 @@ async def set_model_equation(
 @tool_errors
 async def get_model_evaluation(
     model_name: Annotated[str, "Name of the parametric model"],
-    data_path: Annotated[str, "Path to the data to retrieve"],
+    data_path: Annotated[
+        str, "The path to the file where the evaluation will be written"
+    ],
     xmin: Annotated[
         float | None,
         (
@@ -543,7 +545,21 @@ async def solve(
     include_sgpars: Annotated[
         bool, "Whether to also include sgpars from the models automatically"
     ] = False,
-) -> str:
+    method: Annotated[
+        str, "Optimizer method: trf, dogbox, or lm"
+    ] = "trf",
+    x_scale: Annotated[
+        float | str, "Optimizer parameter scaling, or 'jac'"
+    ] = 1.0,
+    max_nfev: Annotated[
+        int | None, "Maximum number of function evaluations"
+    ] = None,
+    ftol: Annotated[float, "Cost-function termination tolerance"] = 1e-8,
+    xtol: Annotated[float, "Step-size termination tolerance"] = 1e-8,
+    background: Annotated[
+        bool, "Run asynchronously and return a job ID"
+    ] = False,
+) -> dict | str:
     """Initiate a refinement using the specified profiles, models, and
     variables.
 
@@ -586,6 +602,17 @@ async def solve(
         List of metadata dictionaries for each profile.
     include_sgpars : bool, optional
         Whether to also include sgpars from the models automatically.
+    method : str, optional
+        Least-squares optimizer method.
+    x_scale : float or str, optional
+        Parameter scaling used by the optimizer.
+    max_nfev : int, optional
+        Maximum number of residual evaluations.
+    ftol, xtol : float, optional
+        Optimizer termination tolerances.
+    background : bool, optional
+        If True, return a job ID immediately and run the solve in the
+        background.
 
     Notes
     -----
@@ -609,9 +636,31 @@ async def solve(
         weights=weights,
         metas=metas,
         include_sgpars=include_sgpars,
+        method=method,
+        x_scale=x_scale,
+        max_nfev=max_nfev,
+        ftol=ftol,
+        xtol=xtol,
+        background=background,
     )
 
     return out_string
+
+
+@mcp.tool()
+@tool_errors
+async def get_solve_status(
+    job_id: Annotated[str, "Background refinement job ID"],
+) -> dict:
+    """Return the status and result of a background refinement job."""
+    return session.get_job_status(job_id)
+
+
+@mcp.tool()
+@tool_errors
+async def list_running_jobs() -> list[dict]:
+    """List pending and currently running background refinements."""
+    return session.list_running_jobs()
 
 
 if __name__ == "__main__":

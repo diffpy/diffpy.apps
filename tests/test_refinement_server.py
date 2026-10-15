@@ -49,7 +49,7 @@ async def test_refine_sine():
             "add_equation_model",
             {
                 "model_name": "sine_model",
-                "equation_str": "A*sin(x)",
+                "equation_string": "A*sin(x)",
             },
         )
         assert "sine_model" in session.models_dict
@@ -110,6 +110,7 @@ async def test_refine_ni():
             {
                 "model_name": "pdf",
                 "structure_file_path": str(_DATA_DIR / "Ni.cif"),
+                "finite": False,
             },
         )
         await mcp_client.call_tool(
@@ -123,7 +124,7 @@ async def test_refine_ni():
             "add_equation_model",
             {
                 "model_name": "ni_model",
-                "equation_str": "s*pdf",
+                "equation_string": "s*pdf",
             },
         )
         await mcp_client.call_tool(
@@ -224,6 +225,7 @@ async def test_refine_multi_contribution():
             {
                 "structure_file_path": str(_DATA_DIR / "Ni.cif"),
                 "model_name": "pdf_ni",
+                "finite": False,
             },
         )
         await mcp_client.call_tool(
@@ -232,17 +234,26 @@ async def test_refine_multi_contribution():
         )
         await mcp_client.call_tool(
             "add_pdf_model",
-            {"from_model_name": "pdf_ni", "model_name": "pdf_ni_neutron"},
+            {
+                "from_model_name": "pdf_ni",
+                "model_name": "pdf_ni_neutron",
+                "finite": False,
+            },
         )
         await mcp_client.call_tool(
             "add_pdf_model",
-            {"from_model_name": "pdf_ni", "model_name": "pdf_ni_partial"},
+            {
+                "from_model_name": "pdf_ni",
+                "model_name": "pdf_ni_partial",
+                "finite": False,
+            },
         )
         await mcp_client.call_tool(
             "add_pdf_model",
             {
                 "structure_file_path": str(_DATA_DIR / "si.cif"),
                 "model_name": "pdf_si",
+                "finite": False,
             },
         )
         await mcp_client.call_tool(
@@ -251,13 +262,17 @@ async def test_refine_multi_contribution():
         )
         await mcp_client.call_tool(
             "add_pdf_model",
-            {"from_model_name": "pdf_si", "model_name": "pdf_si_partial"},
+            {
+                "from_model_name": "pdf_si",
+                "model_name": "pdf_si_partial",
+                "finite": False,
+            },
         )
         await mcp_client.call_tool(
             "add_equation_model",
             {
                 "model_name": "main",
-                "equation_str": "scale * (pdf_ni_partial + pdf_si_partial)",
+                "equation_string": "scale * (pdf_ni_partial + pdf_si_partial)",
             },
         )
         await mcp_client.call_tool(
@@ -390,6 +405,7 @@ async def test_refine_nanoparticle_example():
             {
                 "model_name": "pdf",
                 "structure_file_path": str(_DATA_DIR / "pb.cif"),
+                "finite": False,
             },
         )
         await mcp_client.call_tool(
@@ -398,7 +414,7 @@ async def test_refine_nanoparticle_example():
         )
         await mcp_client.call_tool(
             "add_equation_model",
-            {"model_name": "main", "equation_str": "f*pdf"},
+            {"model_name": "main", "equation_string": "f*pdf"},
         )
         await mcp_client.call_tool(
             "combine_models",
