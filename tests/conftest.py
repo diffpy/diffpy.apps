@@ -26,7 +26,9 @@ def user_filesystem(tmp_path):
 
 @pytest.fixture
 def nested_sine_model():
-    from diffpy.apps.refinebase.parametric_model import ParametricModelEquation
+    from diffpy.apps.parametric_refinement.parametric_model import (
+        ParametricModelEquation,
+    )
 
     submodel = ParametricModelEquation("sub", "a*x")
     model = ParametricModelEquation("main", "A*sin(u)")

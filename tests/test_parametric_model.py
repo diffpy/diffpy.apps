@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy
 import pytest
 
-from diffpy.apps.refinebase.parametric_model import (
+from diffpy.apps.parametric_refinement.parametric_model import (
     ParametricModelEquation,
     ParametricModelFunction,
     create_pdf_model_from_file,

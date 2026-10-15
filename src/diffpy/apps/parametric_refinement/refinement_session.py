@@ -1,12 +1,12 @@
 import uuid
-from concurrent.futures import ThreadPoolExecutor
 from collections import OrderedDict
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 
 import numpy
 from scipy.optimize import least_squares
 
-from diffpy.apps.refinebase.parametric_model import (
+from diffpy.apps.parametric_refinement.parametric_model import (
     ParametricModelEquation,
     ParametricModelPDF,
 )
@@ -106,7 +106,7 @@ class RefinementSession:
         profile.set_calculation_points(x)
 
     def add_equation_model(self, model_name: str, equation_string: str):
-        from diffpy.apps.refinebase.parametric_model import (
+        from diffpy.apps.parametric_refinement.parametric_model import (
             ParametricModelEquation,
         )
 
@@ -127,7 +127,7 @@ class RefinementSession:
         local_structure_name="structure",
         run_parallel=True,
     ):
-        from diffpy.apps.refinebase.parametric_model import (
+        from diffpy.apps.parametric_refinement.parametric_model import (
             create_pdf_model_from_code,
             create_pdf_model_from_file,
             create_pdf_model_from_model,
@@ -177,7 +177,7 @@ class RefinementSession:
         function: Callable | str,
         argnames: list[str] | None = None,
     ):
-        from diffpy.apps.refinebase.parametric_model import (
+        from diffpy.apps.parametric_refinement.parametric_model import (
             ParametricModelFunction,
         )
 
@@ -559,7 +559,8 @@ class RefinementSession:
         }
 
     def get_job_status(self, job_id):
-        """Return the current status and result of a background solve."""
+        """Return the current status and result of a background
+        solve."""
         try:
             job = self.jobs_dict[job_id]
         except KeyError as exc:
@@ -567,7 +568,8 @@ class RefinementSession:
         return dict(job)
 
     def list_running_jobs(self):
-        """Return background jobs that are pending or currently running."""
+        """Return background jobs that are pending or currently
+        running."""
         return [
             dict(job)
             for job in self.jobs_dict.values()

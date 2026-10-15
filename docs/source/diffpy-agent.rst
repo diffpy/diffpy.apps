@@ -18,6 +18,7 @@ Setup
 -----
 
 .. _connect_claude_desktop:
+
 Connect to Claude Desktop
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 1. Copy the path to the conda executable. There are many commands available,
@@ -52,7 +53,7 @@ here are two examples
             "<conda_env_name>",
             "python",
             "-m",
-            "diffpy.apps.refinebase.refinement_server"
+            "diffpy.apps.parametric_refinement.refinement_server"
             ]
         }
     }
@@ -74,7 +75,7 @@ would look like this:
                 "diffpy_apps",
                 "python",
                 "-m",
-                "diffpy.apps.refinebase.refinement_server"
+                "diffpy.apps.parametric_refinement.refinement_server"
             ]
             }
         },
@@ -96,7 +97,7 @@ would look like this:
                 "diffpy_apps",
                 "python",
                 "-m",
-                "diffpy.apps.refinebase.refinement_server"
+                "diffpy.apps.parametric_refinement.refinement_server"
             ]
             }
         },
@@ -117,6 +118,7 @@ would look like this:
 
 
 .. _connect_chatgpt_desktop:
+
 Connect to ChatGPT Desktop
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 1. Copy the path to the conda executable. There are many commands available,
@@ -142,7 +144,7 @@ here are two examples
         "<conda_env_name>",
         "python",
         "-m",
-        "diffpy.apps.refinebase.refinement_server"
+        "diffpy.apps.parametric_refinement.refinement_server"
     ]
 
 .. note::

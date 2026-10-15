@@ -8,7 +8,9 @@ from helper import (
     run_ni_example,
 )
 
-from diffpy.apps.refinebase.refinement_session import RefinementSession
+from diffpy.apps.parametric_refinement.refinement_session import (
+    RefinementSession,
+)
 
 _DATA_DIR = Path(__file__).parent / "data"
 

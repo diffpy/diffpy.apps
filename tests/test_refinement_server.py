@@ -9,7 +9,7 @@ from helper import (
 )
 from mcp import Client
 
-from diffpy.apps.refinebase.refinement_server import mcp
+from diffpy.apps.parametric_refinement.refinement_server import mcp
 
 _DATA_DIR = Path(__file__).parent / "data"
 
@@ -23,7 +23,7 @@ def anyio_backend():
 def clear_session():
     # The MCP server uses a module-level singleton session; reset it so
     # models/profiles from one test don't leak into the next.
-    from diffpy.apps.refinebase.refinement_server import session
+    from diffpy.apps.parametric_refinement.refinement_server import session
 
     session.clear()
     yield
@@ -34,7 +34,7 @@ def clear_session():
 async def test_refine_sine():
     # C1: Set up the MCP client and do a sine refinement
     #   Expect all objs are created and refined successfully
-    from diffpy.apps.refinebase.refinement_server import session
+    from diffpy.apps.parametric_refinement.refinement_server import session
 
     async with Client(mcp, raise_exceptions=True) as mcp_client:
         await mcp_client.call_tool(
@@ -77,7 +77,7 @@ async def test_refine_sine():
 
 @pytest.mark.anyio
 async def test_refine_ni():
-    from diffpy.apps.refinebase.refinement_server import session
+    from diffpy.apps.parametric_refinement.refinement_server import session
 
     ni_refined_parameters = run_ni_example()
 
@@ -177,7 +177,7 @@ async def test_refine_ni():
 
 @pytest.mark.anyio
 async def test_refine_multi_contribution():
-    from diffpy.apps.refinebase.refinement_server import session
+    from diffpy.apps.parametric_refinement.refinement_server import session
 
     multi_contribution_refined_parameters = run_multi_contribution_example()
 
@@ -372,7 +372,7 @@ async def test_refine_multi_contribution():
 
 @pytest.mark.anyio
 async def test_refine_nanoparticle_example():
-    from diffpy.apps.refinebase.refinement_server import session
+    from diffpy.apps.parametric_refinement.refinement_server import session
 
     refined_parameters = run_nanoparticle_example()
 

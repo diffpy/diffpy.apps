@@ -9,7 +9,9 @@ from typing import Annotated
 from mcp.server import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
 
-from diffpy.apps.refinebase.refinement_session import RefinementSession
+from diffpy.apps.parametric_refinement.refinement_session import (
+    RefinementSession,
+)
 
 session = RefinementSession()
 mcp = MCPServer("diffpy.apps")
@@ -545,9 +547,7 @@ async def solve(
     include_sgpars: Annotated[
         bool, "Whether to also include sgpars from the models automatically"
     ] = False,
-    method: Annotated[
-        str, "Optimizer method: trf, dogbox, or lm"
-    ] = "trf",
+    method: Annotated[str, "Optimizer method: trf, dogbox, or lm"] = "trf",
     x_scale: Annotated[
         float | str, "Optimizer parameter scaling, or 'jac'"
     ] = 1.0,
