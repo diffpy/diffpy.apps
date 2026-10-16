@@ -1,3 +1,4 @@
+import logging
 import uuid
 from collections import OrderedDict
 from collections.abc import Callable
@@ -16,6 +17,8 @@ from diffpy.srfit.fitbase import (
     FitResults,
     Profile,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class RefinementSession:
@@ -247,28 +250,57 @@ class RefinementSession:
         return model.residual()
 
     def get_model_evaluation(
-        self, model_name: str, xmin=None, xmax=None, dx=None, xname="r"
+        self,
+        model_name: str,
+        profile_name: str | None = None,
+        xmin=None,
+        xmax=None,
+        dx=None,
+        xname="r",
+        meta: dict | None = None,
     ):
         model = self._get_model(model_name)
         if not hasattr(model, "evaluate"):
             raise ValueError(
                 f"Model '{model_name}' does not have an evaluate method."
             )
-        if not (
-            hasattr(model, "calc_obj")
-            and hasattr(model.calc_obj, "profile")
-            and model.calc_obj.profile is not None
-        ):
-            profile = Profile()
-            profile.set_observed_profile(
-                xobs=numpy.arange(xmin, xmax, dx),
-                yobs=numpy.zeros_like(numpy.arange(xmin, xmax, dx)),
-            )
-            if isinstance(model, ParametricModelEquation):
-                model.set_profile(profile, xname=xname)
+        if profile_name is not None:
+            try:
+                profile = self._get_profile(profile_name)
+            except ValueError:
+                logger.warning(
+                    f"Profile '{profile_name}' not found in the session. "
+                    "A temporary profile will be created according to "
+                    "provided xmin, xmax, and dx."
+                )
+                profile = None
+        if profile_name is None:
+            if (
+                hasattr(model, "calc_obj")
+                and hasattr(model.calc_obj, "profile")
+                and model.calc_obj.profile is not None
+            ):
+                profile = model.calc_obj.profile
             else:
-                model.set_profile(profile)
-        r = model.calc_obj.profile.x
+                if all(v is None for v in (xmin, xmax, dx)):
+                    logger.error(
+                        "No calculation range specified (xmin, xmax, dx are "
+                        "all None). Program cannot determine the independent "
+                        "variable 'x'. Please specify xmin, xmax, and dx if "
+                        "profile is not existing or provided."
+                    )
+                profile = Profile()
+                profile.set_observed_profile(
+                    xobs=numpy.arange(xmin, xmax, dx),
+                    yobs=numpy.zeros_like(numpy.arange(xmin, xmax, dx)),
+                )
+        profile.set_calculation_range(xmin=xmin, xmax=xmax, dx=dx)
+        profile.meta.update(meta or {})
+        if isinstance(model, ParametricModelEquation):
+            model.set_profile(profile, xname=xname)
+        else:
+            model.set_profile(profile)
+        r = profile.x
         ycalc = model.evaluate()
         return r, ycalc
 
@@ -511,10 +543,12 @@ class RefinementSession:
 
         variables = [self.get_variable(name)["obj"] for name in variable_names]
         variable_names = ["_".join(name.split(".")) for name in variable_names]
+        tag_manager = recipe._tagmanager
         for i, var in enumerate(variables):
             if var in recipe._parameters.values():
+                tag_manager.tag(var, "listed_var")
                 continue
-            recipe.add_variable(var, name=variable_names[i])
+            recipe.add_variable(var, name=variable_names[i], tag="listed_var")
         for eq_or_var_name, arg_dict in bounds.items():
             lb = arg_dict.get("lower_bound", -numpy.inf)
             ub = arg_dict.get("upper_bound", numpy.inf)
@@ -529,7 +563,9 @@ class RefinementSession:
             else:
                 par = self.get_variable(eq_or_var_name)["obj"]
                 par.bound_range(lb, ub)
-        recipe.free("all")
+        if len(recipe.get_values()) != 0:
+            recipe.fix("all")
+            recipe.free("listed_var")
         result = least_squares(
             recipe.residual,
             recipe.get_values(),
@@ -556,6 +592,9 @@ class RefinementSession:
             "nfev": int(result.nfev),
             "cost": float(result.cost),
             "result": result_string,
+            "meta": {
+                models[i].name: profiles[i].meta for i in range(len(models))
+            },
         }
 
     def get_job_status(self, job_id):

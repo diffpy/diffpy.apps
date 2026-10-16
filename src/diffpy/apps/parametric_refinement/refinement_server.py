@@ -297,6 +297,15 @@ async def get_model_evaluation(
     data_path: Annotated[
         str, "The path to the file where the evaluation will be written"
     ],
+    profile_name: Annotated[
+        str,
+        (
+            "Name of the profile to use for the evaluation. "
+            "If None, temporary profile will be created for the evaluation. "
+            "If both profile_name and xmin/xmax/dx are provided, "
+            "the profile's calculation range will be updated accordingly."
+        ),
+    ] = None,
     xmin: Annotated[
         float | None,
         (
@@ -318,6 +327,13 @@ async def get_model_evaluation(
             "if the profile is not set for the model"
         ),
     ] = None,
+    meta: Annotated[
+        dict | None,
+        (
+            "Metadata to associate with the evaluation. "
+            "If None, no additional metadata will be added."
+        ),
+    ] = None,
     xname: Annotated[
         str,
         (
@@ -327,9 +343,16 @@ async def get_model_evaluation(
     ] = "r",
 ) -> str:
     """Get the current evaluation of a parametric model."""
-    evaluation = session.get_model_evaluation(
-        model_name=model_name, xmin=xmin, xmax=xmax, dx=dx, xname=xname
-    ).tolist()
+    r, ycalc = session.get_model_evaluation(
+        model_name=model_name,
+        profile_name=profile_name,
+        xmin=xmin,
+        xmax=xmax,
+        dx=dx,
+        xname=xname,
+        meta=meta,
+    )
+    evaluation = {"r": r.tolist(), "ycalc": ycalc.tolist()}
     with open(data_path, "w") as f:
         json.dump(evaluation, f)
     return (
