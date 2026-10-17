@@ -1,11 +1,14 @@
 import logging
 import re
+from abc import ABC, abstractmethod
 from functools import wraps
 from pathlib import Path
 
 import networkx as nx
 import numpy
 from pyobjcryst import loadCrystal
+from pyobjcryst.crystal import Crystal
+from pyobjcryst.molecule import Molecule
 
 from diffpy.srfit.fitbase import FitContribution
 from diffpy.srfit.fitbase.parameter import Parameter, ParameterProxy
@@ -18,27 +21,63 @@ from diffpy.srfit.structure.objcrystparset import (
     ObjCrystMolAtomParSet,
     ObjCrystMoleculeParSet,
 )
+from diffpy.srfit.structure.srrealparset import SrRealParSet
+from diffpy.structure import Structure
 from diffpy.structure.parsers import get_parser
 
 # NOTE: MCP server prefers logging for output
 logger = logging.getLogger(__name__)
 
 
-class ParametricModel:
+class ParametricModelABC(ABC):
+    """Abstract base class for parametric models."""
+
+    @abstractmethod
+    def set_profile(self, profile, **kwargs):
+        pass
+
+    @property
+    @abstractmethod
+    def operator(self):
+        pass
+
+    @abstractmethod
+    def evaluate(self):
+        pass
+
+    @abstractmethod
+    def residual(self):
+        pass
+
+
+class ParametricModelBase:
+    """Base class for parametric models providing common functionality
+    for managing parameters and constructing a parameter graph.
+
+    Attributes
+    ----------
+    name : str
+        The name of the parametric model.
+    calc_obj : object
+        The calculation object associated with the model.
+    parset_obj : diffpy.srfit.fitbase.recipeorganizer.RecipeOrganizer
+        The parameter set object associated with the model.
+    _graph : networkx.DiGraph
+        The directed graph representing the parameter hierarchy.
+    """
+
     def __init__(self, name):
         self.name = name
-        self._contribution = FitContribution(name)
-        self.calc_obj = self._contribution
+        self.calc_obj = None
+        self.parset_obj = None
         self._graph = nx.DiGraph()
-        # all submodels will share the same profile
-        self._submodels = []
 
     def _construct_parameter_graph(
-        self, parameterset, prefix="", old_graph=None
+        self, parset_obj, prefix="", old_graph=None
     ):
-        parent_name = f"{prefix}{parameterset.name}"
-        self._graph.add_node(parent_name, obj=parameterset)
-        for par in parameterset._iter_local_parameters(regexp=re.compile("")):
+        parent_name = f"{prefix}{parset_obj.name}"
+        self._graph.add_node(parent_name, obj=parset_obj)
+        for par in parset_obj._iter_local_parameters(regexp=re.compile("")):
             par_node_id = f"{parent_name}.{par.name}"
             if not old_graph or par_node_id not in old_graph.nodes:
                 self._graph.add_node(
@@ -55,7 +94,7 @@ class ParametricModel:
                     ],
                 )
             self._graph.add_edge(parent_name, par_node_id)
-        for obj in parameterset._iter_managed_parameter_containers():
+        for obj in parset_obj._iter_managed_parameter_containers():
             if hasattr(obj, "_iter_managed_parameter_containers"):
                 child_name = f"{parent_name}.{obj.name}"
                 # obj is handled as unconstrained by default
@@ -68,55 +107,6 @@ class ParametricModel:
                 self._construct_parameter_graph(
                     obj, prefix=f"{parent_name}.", old_graph=old_graph
                 )
-
-    def register_submodel(self, submodel, symbol=None):
-        if not isinstance(self, ParametricModelEquation):
-            raise ValueError(
-                "Submodels can only be registered to "
-                "ParametricModelEquation instance."
-            )
-        if symbol is None:
-            symbol = submodel.name
-        if symbol in self._contribution._parameters:
-            self._contribution._remove_parameter(
-                self._contribution._parameters[symbol]
-            )
-        if isinstance(submodel, ParametricModelPDF):
-            if symbol != submodel.name:
-                logger.warning(
-                    f"ParametricModelPDF's name ({submodel.name}) does "
-                    f"not match with the provided symbol ({symbol}) ",
-                )
-            self._contribution.add_profile_generator(submodel.calc_obj)
-        elif isinstance(submodel, ParametricModelEquation) or isinstance(
-            submodel, ParametricModelFunction
-        ):
-            self._contribution._eqfactory.registerOperator(
-                symbol, submodel._contribution._eq
-            )
-            self._contribution.add_parameter_set(submodel._contribution)
-        else:
-            raise NotImplementedError(
-                "Only ParametricModelPDF, ParametricModelEquation, "
-                "and ParametricModelFunction "
-                "instances are supported to be registered as submodels."
-            )
-        if self.equation_str is not None:
-            self._contribution.set_equation(self.equation_str)
-        submodel._rebuild_graph()
-        if f"{self.name}.{submodel.name}" not in self._graph.nodes:
-            self._graph.add_node(
-                symbol,
-                obj=submodel,
-                constrained_or_constant=False,
-            )
-            self._graph.add_edge(self.name, symbol)
-        subgraph = submodel._graph.copy()
-        mapping = {node: f"{self.name}.{node}" for node in subgraph.nodes}
-        subgraph = nx.relabel_nodes(subgraph, mapping)
-        self._graph = nx.compose(self._graph, subgraph)
-        self._submodels.append(submodel)
-        self._rebuild_graph()
 
     @property
     def parameters(self):
@@ -144,82 +134,154 @@ class ParametricModel:
             )
         }
 
-    def set_profile(self, profile):
-        self._contribution.set_profile(profile)
-        for submodel in self._submodels:
-            if hasattr(submodel, "set_profile"):
-                submodel.set_profile(profile)
-        self._rebuild_graph()
-
     def _rebuild_graph(self):
         old_graph = self._graph
         self._graph = nx.DiGraph()
         self._construct_parameter_graph(
-            self._contribution, prefix="", old_graph=old_graph
-        )
-
-    def evaluate(self):
-        raise NotImplementedError(
-            "The evaluate method must be implemented by subclasses."
-        )
-
-    def residual(self):
-        raise NotImplementedError(
-            "The residual method must be implemented by subclasses."
+            self.parset_obj, prefix="", old_graph=old_graph
         )
 
 
-class ParametricModelEquation(ParametricModel):
-    def __init__(self, name, equation_str=None):
+ParametricModelABC.register(ParametricModelBase)
+
+
+class ParametricModelEquation(ParametricModelBase, ParametricModelABC):
+    """Parametric model based on an equation.
+
+    Attributes
+    ----------
+    _contribution : diffpy.srfit.fitbase.FitContribution
+        The fit contribution object associated with the model.
+    calc_obj : diffpy.srfit.fitbase.FitContribution
+        Alias for the fit contribution object.
+    parset_obj : diffpy.srfit.fitbase.FitContribution
+        Alias for the fit contribution object.
+    _submodels : list
+        List of registered submodels.
+    """
+
+    def __init__(self, name, equation_string):
         super().__init__(name=name)
-        self.equation_str = None
-        if equation_str:
-            self.set_equation(equation_str)
+        self._contribution = FitContribution(name)
+        self.calc_obj = self._contribution
+        self.parset_obj = self._contribution
+        self._submodels = []
+        self.set_equation(equation_string)
 
-    def set_equation(self, equation_str):
-        self.equation_str = equation_str
-        self._contribution.set_equation(equation_str)
+    def set_equation(self, equation_string):
+        self.equation_string = equation_string
+        self._contribution.set_equation(equation_string)
         self._rebuild_graph()
 
-    def get_equation(self):
-        return self.equation_str
+    @property
+    def operator(self):
+        return self._contribution._eq
+
+    def set_profile(self, profile, xname=None, yname=None, dyname=None):
+        self._contribution.set_profile(
+            profile, xname=xname, yname=yname, dyname=dyname
+        )
+        for submodel in self._submodels:
+            if hasattr(submodel, "set_profile"):
+                submodel.set_profile(
+                    profile, xname=xname, yname=yname, dyname=dyname
+                )
 
     def evaluate(self):
-        yc = self._contribution._eq()
         if (
             hasattr(self._contribution, "profile")
             and self._contribution.profile is not None
         ):
+            yc = self._contribution._eq()
             self._contribution.profile.ycalc = yc
+            return yc
+        yc = self._contribution._eq()
         return yc
 
     def residual(self):
         return self._contribution.residual()
 
+    def register_submodel(self, submodel, symbol=None):
+        if symbol is None:
+            symbol = submodel.name
+        # add submodule's calculation model
+        if symbol in self._contribution._parameters:
+            self._contribution._remove_parameter(
+                self._contribution._parameters[symbol]
+            )
+        if isinstance(submodel, ParametricModelPDF):
+            if symbol != submodel.name:
+                logger.warning(
+                    f"ParametricModelPDF's name ({submodel.name}) does "
+                    f"not match with the provided symbol ({symbol}). "
+                    f"{submodel.name} will be used as the symbol."
+                )
+            self._contribution.add_profile_generator(submodel._generator)
+        elif isinstance(submodel, ParametricModelFunction) or isinstance(
+            submodel, ParametricModelEquation
+        ):
+            self._contribution._eqfactory.registerOperator(
+                symbol, submodel.operator
+            )
+            self._contribution.add_parameter_set(submodel.parset_obj)
+        else:
+            raise NotImplementedError(
+                "Only ParametricModelPDF, ParametricModelEquation, "
+                "and ParametricModelFunction "
+                "instances are supported to be registered as submodels."
+            )
+        self.set_equation(self.equation_string)
+        # add submodel's subgraph
+        submodel._rebuild_graph()
+        if f"{self.name}.{submodel.name}" not in self._graph.nodes:
+            self._graph.add_node(
+                symbol,
+                obj=submodel,
+                constrained_or_constant=False,
+            )
+            self._graph.add_edge(self.name, symbol)
+        subgraph = submodel._graph.copy()
+        mapping = {node: f"{self.name}.{node}" for node in subgraph.nodes}
+        subgraph = nx.relabel_nodes(subgraph, mapping)
+        self._graph = nx.compose(self._graph, subgraph)
+        self._submodels.append(submodel)
+        self._rebuild_graph()
 
-class ParametricModelFunction(ParametricModel):
-    def __init__(self, name, function, argnames=None):
+
+class ParametricModelFunction(ParametricModelEquation):
+    """Parametric model based on a function."""
+
+    def __init__(self, name, function, symbol=None, argnames=None):
         """Initialize a ParametricModelFunction instance.
 
         function can be either a callable or a string representing
         the pre-defined function.
         One and only one of func or characteristic_func_name must be provided.
-        Allowed value for characteristic_func_name:
-            "spherical_particle",
-            "spheroidal_particle",
-            "lognormal_spherical_particle",
-            "sheet_particle",
-            "shell_particle",
-            "SASCF",
-            "sphericalCF",
-            "spheroidalCF",
-            "spheroidalCF2",
-            "lognormalSphericalCF",
-            "sheetCF",
-            "shellCF",
-            "shellCF2",
+
+        Parameters
+        ----------
+        name: str
+            The name of the parametric model function.
+        symbol: str
+            The symbol representing the function in the equation.
+        function: str or callable
+            The function associated with the model. Allowed str values are:
+                "spherical_particle",
+                "spheroidal_particle",
+                "lognormal_spherical_particle",
+                "sheet_particle",
+                "shell_particle",
+                "SASCF",
+                "sphericalCF",
+                "spheroidalCF",
+                "spheroidalCF2",
+                "lognormalSphericalCF",
+                "sheetCF",
+                "shellCF",
+                "shellCF2",
+        argnames: list of str, optional
+            The names of the arguments for the function.
         """
-        super().__init__(name=name)
         if isinstance(function, str):
             import diffpy.srfit.pdf.characteristicfunctions
 
@@ -227,30 +289,49 @@ class ParametricModelFunction(ParametricModel):
                 diffpy.srfit.pdf.characteristicfunctions,
                 function,
             )
-        self._contribution.register_function(function, argnames=argnames)
-        self._contribution.set_equation(function.__name__)
-        self.calc_obj = function
+        if symbol is None:
+            symbol = function.__name__
+        ParametricModelBase.__init__(self, name=name)
+        self._contribution = FitContribution(name)
+        self.calc_obj = self._contribution
+        self.parset_obj = self._contribution
+        self._submodels = []
+        self._function = function
+        self._argnames = argnames
+        self._contribution.register_function(
+            function=function, name=symbol, argnames=argnames
+        )
+        self.set_equation(symbol)
         self._rebuild_graph()
 
-    def set_profile(self, profile, xname=None, yname=None, dyname=None):
-        self._contribution.set_profile(
-            profile, xname=xname, yname=yname, dyname=dyname
-        )
-        # no submodel is allowed ParametricModelFunction
 
-    def evaluate(self):
-        return self._contribution._eq()
+class ParametricModelPDF(ParametricModelBase, ParametricModelABC):
+    """Parametric model based on a calculator for generating pair
+    distribution function (PDF).
 
+    NOTE: qmin, qmax, stype(scattering type) are meta handled throughout
+    the loaded profile in the refinement session
 
-class ParametricModelPDF(ParametricModel):
-    # NOTE: qmin, qmax, stype(scattering type) are meta handled
-    #   throughout the loaded profile in the refinement session
+    Attributes
+    ----------
+    _generator : PDFGenerator or DebyePDFGenerator
+        The generator object used internally for PDF calculations.
+    calc_obj: PDFGenerator or DebyePDFGenerator
+        alias for _generator.
+    parset_obj: FitContribution
+        The parameter set object associated with the model.
+    space_group_symbol: str
+        The space group symbol of the structure.
+    sgpar_names: list of str
+        The names of the space group parameters.
+    """
+
     def __init__(
         self,
         name,
         structure,
+        finite,
         spacegroup_symbol="P1",
-        finite=False,
         run_parallel=True,
     ):
         """Create a ParametricModelPDF instance from a structure object.
@@ -259,44 +340,68 @@ class ParametricModelPDF(ParametricModel):
         an existing DiffpyStructureParSet/ObjCrystCrystalParSet phase
         (e.g. shared from another ParametricModelPDF).
         """
-        super().__init__(name=name)
+        ParametricModelBase.__init__(self, name=name)
 
         if not finite:
-            self.calc_obj = PDFGenerator(name)
+            self._generator = PDFGenerator(name)
         else:
-            self.calc_obj = DebyePDFGenerator(name)
-        if isinstance(
-            structure, (DiffpyStructureParSet, ObjCrystCrystalParSet)
-        ):
-            # already a phase parset: share it instead of rewrapping it
-            self.calc_obj.setPhase(structure)
-        else:
-            self.calc_obj.setStructure(structure)
+            self._generator = DebyePDFGenerator(name)
+        if isinstance(structure, SrRealParSet):
+            self._generator.setPhase(structure)
+        elif isinstance(structure, (Structure, Crystal, Molecule)):
+            self._generator.setStructure(structure)
+        self.calc_obj = self._generator
+        self.parset_obj = self._generator
+        self._contribution = self.calc_obj
+
+        self._set_parallel(run_parallel)
         self.space_group_symbol = spacegroup_symbol
         self.sgpar_names = []
-        self._rebuild_graph()
-        if run_parallel:
-            try:
-                import multiprocessing
-                from multiprocessing import Pool
-
-                import psutil
-            except ImportError:
-                print(
-                    "\nYou don't appear to have the "
-                    "necessary packages for parallelization"
-                )
-            syst_cores = multiprocessing.cpu_count()
-            cpu_percent = psutil.cpu_percent()
-            avail_cores = numpy.floor(
-                (100 - cpu_percent) / (100.0 / syst_cores)
+        self.free_sgpar_names = []
+        if isinstance(self._generator.phase, DiffpyStructureParSet):
+            self.use_uiso = True
+        elif isinstance(self._generator.phase, ObjCrystCrystalParSet):
+            self.use_uiso = False
+        else:
+            logger.warning(
+                "Unknown phase type for the generator. "
+                "use_uiso is set to False by default."
             )
-            ncpu = int(numpy.max([1, avail_cores]))
-            pool = Pool(processes=ncpu)
-            self.calc_obj.parallel(ncpu=ncpu, mapfunc=pool.map)
+            self.use_uiso = False
+        self._rebuild_graph()
 
-    def _hide_dependent_parameters(self, use_uiso=True):
-        if use_uiso:
+    def _rebuild_graph(self):
+        ParametricModelBase._rebuild_graph(self)
+        self._prepare_graph()
+
+    def set_profile(self, profile, *args, **kwargs):
+        # generator doesn't accept xname, yname, dyname arguments
+        self._generator.set_profile(profile)
+
+    @property
+    def operator(self):
+        logging.error("Accessing the operator of the generator.")
+        raise NotImplementedError()
+
+    def evaluate(self):
+        if (
+            not hasattr(self._generator, "profile")
+            or self._generator.profile is None
+        ):
+            raise RuntimeError(
+                "Unable to evaluate because the profile is not set. "
+                "Please set the profile before evaluating."
+            )
+        return self._generator.operation()
+
+    def residual(self):
+        ycalc = self.calc_obj.operation()
+        yobs = self.calc_obj.profile.ypar.value
+        dyobs = self.calc_obj.profile.dypar.value
+        return (ycalc - yobs) / dyobs
+
+    def _prepare_graph(self):
+        if self.use_uiso:
             dependent_par_names = [
                 r"\.U21$",
                 r"\.U31$",
@@ -319,30 +424,36 @@ class ParametricModelPDF(ParametricModel):
             if regex.search(par_name):
                 self._graph.nodes[par_name]["constrained_or_constant"] = True
 
-    def constrain_symmetry(self, spacegroup_symbol=None, use_uiso=True):
+    def _set_parallel(self, run_parallel):
+        if run_parallel:
+            try:
+                import multiprocessing
+                from multiprocessing import Pool
+
+                import psutil
+            except ImportError:
+                logger.warning(
+                    "Parallelization is disabled because the required "
+                    "packages are not installed."
+                )
+                return
+            syst_cores = multiprocessing.cpu_count()
+            cpu_percent = psutil.cpu_percent()
+            avail_cores = numpy.floor(
+                (100 - cpu_percent) / (100.0 / syst_cores)
+            )
+            ncpu = int(numpy.max([1, avail_cores]))
+            pool = Pool(processes=ncpu)
+            self._generator.parallel(ncpu=ncpu, mapfunc=pool.map)
+
+    def constrain_symmetry(self, spacegroup_symbol=None):
         if spacegroup_symbol is None:
             spacegroup_symbol = self.space_group_symbol
-        if isinstance(self.calc_obj.phase, DiffpyStructureParSet):
-            space_group_parset = constrain_as_space_group(
-                self.calc_obj.phase, spacegroup_symbol
-            )
-            self._hide_dependent_parameters(use_uiso=use_uiso)
-        elif isinstance(self.calc_obj.phase, ObjCrystCrystalParSet):
-            if use_uiso is not False:
-                use_uiso = False
-                logger.warning(
-                    "ObjCrystCrystalParSet prefers using the letter B instead "
-                    "U for ADP parameters."
-                )
-            self._hide_dependent_parameters(use_uiso=use_uiso)
-        else:
-            raise ValueError(
-                "Unsupported calculation object type."
-                "Currently supported types are "
-                "DiffpyStructureParSet and ObjCrystCrystalParSet."
-            )
+        space_group_parset = constrain_as_space_group(
+            self._generator.phase, spacegroup_symbol
+        )
         # hide constrained parameters in the graph
-        if use_uiso:
+        if self.use_uiso:
             symmetry_par_names = [
                 r"\.a$",
                 r"\.b$",
@@ -381,15 +492,15 @@ class ParametricModelPDF(ParametricModel):
                 r"\.B23$",
             ]
         free_variables = []
-        if isinstance(self.calc_obj.phase, DiffpyStructureParSet):
+        if isinstance(self._generator.phase, DiffpyStructureParSet):
             for latpar in space_group_parset.latpars:
                 free_variables.append(latpar)
             for adpar in space_group_parset.adppars:
                 free_variables.append(adpar)
             for xyzpar in space_group_parset.xyzpars:
                 free_variables.append(xyzpar)
-        elif isinstance(self.calc_obj.phase, ObjCrystCrystalParSet):
-            for par in self.calc_obj.phase.sgpars:
+        elif isinstance(self._generator.phase, ObjCrystCrystalParSet):
+            for par in self._generator.phase.sgpars:
                 free_variables.append(par)
         for i in range(len(free_variables)):
             while isinstance(free_variables[i], ParameterProxy):
@@ -397,7 +508,7 @@ class ParametricModelPDF(ParametricModel):
             organized_name = ".".join(
                 [
                     obj.name
-                    for obj in self.calc_obj._locate_managed_object(
+                    for obj in self._generator._locate_managed_object(
                         free_variables[i]
                     )
                 ]
@@ -412,13 +523,16 @@ class ParametricModelPDF(ParametricModel):
                     self._graph.nodes[par_name][
                         "constrained_or_constant"
                     ] = True
+                else:
+                    self.free_sgpar_names.append(par_name)
+                self.sgpar_names.append(par_name)
 
     def check_molecule_or_molatom(func):
         @wraps(func)  # preserves name, docstring, signature metadata
         def wrapper(self, *args, **kwargs):
             if not (
-                isinstance(self.calc_obj.phase, ObjCrystMoleculeParSet)
-                or isinstance(self.calc_obj.phase, ObjCrystMolAtomParSet)
+                isinstance(self._generator.phase, ObjCrystMoleculeParSet)
+                or isinstance(self._generator.phase, ObjCrystMolAtomParSet)
             ):
                 logging.warning(
                     "The method %s is only applicable to "
@@ -442,7 +556,7 @@ class ParametricModelPDF(ParametricModel):
         const=None,
         parent_node_name=None,
     ):
-        phase = self.calc_obj.phase
+        phase = self._generator.phase
         par = phase.addBondLengthParameter(
             par_name, atom1, atom2, value, const
         )
@@ -463,7 +577,7 @@ class ParametricModelPDF(ParametricModel):
         const=None,
         parent_node_name=None,
     ):
-        phase = self.calc_obj.phase
+        phase = self._generator.phase
         par = phase.addBondAngleParameter(
             par_name, atom1, atom2, atom3, value, const
         )
@@ -485,7 +599,7 @@ class ParametricModelPDF(ParametricModel):
         const=None,
         parent_node_name=None,
     ):
-        phase = self.calc_obj.phase
+        phase = self._generator.phase
         par = phase.addDihedralAngleParameter(
             par_name, atom1, atom2, atom3, atom4, value, const
         )
@@ -499,45 +613,22 @@ class ParametricModelPDF(ParametricModel):
     def restrain_bond_length_parameter(
         self, par, length, sigma, delta, scaled=False
     ):
-        phase = self.calc_obj.phase
+        phase = self._generator.phase
         phase.restrainBondLengthParameter(par, length, sigma, delta, scaled)
 
     @check_molecule_or_molatom
     def restrain_bond_angle_parameter(
         self, par, angle, sigma, delta, scaled=False
     ):
-        phase = self.calc_obj.phase
+        phase = self._generator.phase
         phase.restrainBondAngleParameter(par, angle, sigma, delta, scaled)
 
     @check_molecule_or_molatom
     def restrain_dihedral_angle_parameter(
         self, par, angle, sigma, delta, scaled=False
     ):
-        phase = self.calc_obj.phase
+        phase = self._generator.phase
         phase.restrainDihedralAngleParameter(par, angle, sigma, delta, scaled)
-
-    def _rebuild_graph(self):
-        old_graph = self._graph
-        self._graph = nx.DiGraph()
-        self._construct_parameter_graph(
-            # PDFGenerator itself holds parameters
-            self.calc_obj,
-            prefix="",
-            old_graph=old_graph,
-        )
-
-    def set_profile(self, profile):
-        self.calc_obj.set_profile(profile)
-        # no submodel is allowed ParametricModelPDF
-
-    def evaluate(self):
-        return self.calc_obj.operation()
-
-    def residual(self):
-        ycalc = self.calc_obj.operation()
-        yobs = self.calc_obj.profile.ypar.value
-        dyobs = self.calc_obj.profile.dypar.value
-        return (ycalc - yobs) / dyobs
 
 
 # NOTE: certain space groups require dual origin handling.
@@ -572,8 +663,8 @@ DUAL_ORIGIN_SG_NUMBERS = {
 def create_pdf_model_from_file(
     name,
     structure_file_path,
+    finite,
     library="Diffpy",
-    finite=False,
     run_parallel=True,
 ):
     """Create a ParametricModelPDF by parsing a structure file."""
@@ -594,12 +685,13 @@ def create_pdf_model_from_file(
     )
 
 
-def create_pdf_model_from_model(name, from_model, run_parallel=True):
+def create_pdf_model_from_model(name, from_model, finite, run_parallel=True):
     """Create a ParametricModelPDF sharing the phase of from_model."""
     return ParametricModelPDF(
         name,
         from_model.calc_obj.phase,
         spacegroup_symbol=from_model.space_group_symbol,
+        finite=finite,
         run_parallel=run_parallel,
     )
 
@@ -607,10 +699,10 @@ def create_pdf_model_from_model(name, from_model, run_parallel=True):
 def create_pdf_model_from_code(
     name,
     code,
+    finite,
     spacegroup_symbol="P1",
-    global_namespace={},
+    global_namespace=None,
     local_structure_name="structure",
-    finite=False,
     run_parallel=True,
 ):
     """Create a ParametricModelPDF by executing code that builds a
@@ -619,6 +711,8 @@ def create_pdf_model_from_code(
     The code must assign the structure/crystal object to a variable
     named structure_name (default "structure") in its local namespace.
     """
+    if global_namespace is None:
+        global_namespace = {}
     local_namespace = {}
     exec(code, global_namespace, local_namespace)
     if local_structure_name not in local_namespace:

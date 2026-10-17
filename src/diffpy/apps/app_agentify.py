@@ -1,3 +1,4 @@
+import json
 import shutil
 import socket
 import subprocess
@@ -44,9 +45,12 @@ def agentify(args):
             ["git", "clone", REPO_URL, str(tmp_path)],
             check=True,
         )
+        skills = json.load(open(tmp_path / "skills.json"))
         for item in tmp_path.iterdir():
             if item.is_dir():
                 destination = dest_dir / item.name
+                if item.name not in skills:
+                    continue
                 if destination.exists():
                     if args.update:
                         shutil.rmtree(destination)

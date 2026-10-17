@@ -53,7 +53,7 @@ here are two examples
             "<conda_env_name>",
             "python",
             "-m",
-            "diffpy.apps.refinebase.refinement_server"
+            "diffpy.apps.parametric_refinement.refinement_server"
             ]
         }
     }
@@ -75,7 +75,7 @@ would look like this:
                 "diffpy_apps",
                 "python",
                 "-m",
-                "diffpy.apps.refinebase.refinement_server"
+                "diffpy.apps.parametric_refinement.refinement_server"
             ]
             }
         },
@@ -97,7 +97,7 @@ would look like this:
                 "diffpy_apps",
                 "python",
                 "-m",
-                "diffpy.apps.refinebase.refinement_server"
+                "diffpy.apps.parametric_refinement.refinement_server"
             ]
             }
         },
@@ -144,7 +144,7 @@ here are two examples
         "<conda_env_name>",
         "python",
         "-m",
-        "diffpy.apps.refinebase.refinement_server"
+        "diffpy.apps.parametric_refinement.refinement_server"
     ]
 
 .. note::

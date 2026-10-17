@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy
 import pytest
 
-from diffpy.apps.refinebase.parametric_model import (
+from diffpy.apps.parametric_refinement.parametric_model import (
     ParametricModelEquation,
     ParametricModelFunction,
     create_pdf_model_from_file,
@@ -71,7 +71,9 @@ def test_parametric_pdf_model_parameters():
     profile.load_parsed_data(parser)
     profile.set_calculation_range(xmax=20)
     pdf_model = create_pdf_model_from_file(
-        "ni", structure_file_path=str(_DATA_DIR / "Ni.cif")
+        "ni",
+        structure_file_path=str(_DATA_DIR / "Ni.cif"),
+        finite=False,
     )
     parameter_names = [
         "ni.phase.lattice.a",
