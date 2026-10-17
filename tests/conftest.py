@@ -43,3 +43,26 @@ def sine_profile():
     sine_profile = Profile()
     sine_profile.set_observed_profile(xobs, yobs)
     return sine_profile
+
+
+@pytest.fixture
+def mock_clone_skills(user_filesystem, mocker):
+    def fake_clone(cmd, **kwargs):
+        # the last argument is the temporary directory to clone into
+        target_dir = Path(cmd[-1])
+        (target_dir / "skills.json").write_text(
+            json.dumps(["diffpy-playbook"])
+        )
+        skill_dir = target_dir / "diffpy-playbook"
+        skill_dir.mkdir()
+        (skill_dir / "SKILL.md").write_text("skill")
+
+    mocker.patch("diffpy.apps.app_agentify.ensure_setup", return_value=True)
+    mocker.patch(
+        "diffpy.apps.app_agentify.subprocess.run", side_effect=fake_clone
+    )
+    mocker.patch.object(
+        Path, "home", return_value=user_filesystem / "home_dir"
+    )
+    mocker.patch.object(Path, "cwd", return_value=user_filesystem / "cwd_dir")
+    return user_filesystem
