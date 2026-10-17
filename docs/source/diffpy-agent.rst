@@ -18,6 +18,7 @@ Setup
 -----
 
 .. _connect_claude_desktop:
+
 Connect to Claude Desktop
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 1. Copy the path to the conda executable. There are many commands available,
@@ -117,6 +118,7 @@ would look like this:
 
 
 .. _connect_chatgpt_desktop:
+
 Connect to ChatGPT Desktop
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 1. Copy the path to the conda executable. There are many commands available,
@@ -219,6 +221,36 @@ To update the existing ``diffpy.cmi`` agentic skill, use the ``--update`` flag:
 
     diffpy-app agentify --update
 
+
+When the agent fails
+--------------------
+An agent using ``diffpy.apps`` is not guaranteed to handle every complicated PDF
+refinement task by itself. Its success relies on tools in
+``diffpy.apps`` being executed in the correct order, and the knowledge of
+how to generate the correct sequence of tool invocations comes from the
+LLM itself, the agent skills we have prepared, the local context and
+the user's prompt.
+
+When the agent cannot handle a situation automatically, the user may need to
+intervene and manually guide the refinement process by providing
+instructions about the expected tool and arguments.
+
+Try to ask *"Please summarize available tools inside diffpy.apps concisely."*,
+and you will get the response similarly to this
+
+.. code-block:: none
+
+    diffpy.apps is a set of 28 tools for running diffpy.srfit-style refinements,
+    such as PDF fits, in a stateful session. Here they are by job:
+    ...
+
+
+Getting familiar with the available tools and their usage will allow you to
+use ``diffpy.apps`` capabilities in your prompt effectively.
+General instructions are usually sufficient for the agent to find
+the correct tools.
+
+.. _contribute_cmi_skills:
 
 How to contribute Diffpy agent skills
 -------------------------------------
