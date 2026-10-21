@@ -4,6 +4,24 @@ Release notes
 
 .. current developments
 
+0.2.0
+=====
+
+**Added:**
+
+* Add generator parallelism.
+* Add soft bounds.
+* add a tool to download cif file from database.
+* support load PDF model from pyobjcryst code.
+* support molecule PDF refinement.
+* Added support for nanoparticle pdf refinement.
+* Add more flexible interface to utilize ``diffpy.srfit``.
+
+**Fixed:**
+
+* Update the skill name and allow multiple skills.
+
+
 0.1.1
 =====
 
