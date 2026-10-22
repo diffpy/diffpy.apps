@@ -37,8 +37,8 @@ We recommend installing ``diffpy.apps`` using `conda <https://docs.conda.io/en/l
 
 .. code-block:: bash
 
-   conda create -n diffpy_mcp
-   conda activate diffpy_mcp
+   conda create -n diffpy.apps_env python=3.13
+   conda activate diffpy.apps_env
    conda install -c conda-forge diffpy.apps
 
 
