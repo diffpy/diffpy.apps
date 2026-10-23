@@ -36,12 +36,10 @@
 .. |Tracking| image:: https://img.shields.io/badge/issue_tracking-github-blue
         :target: https://github.com/diffpy/diffpy.apps/issues
 
-User applications to help with tasks using diffpy packages. Currently it
-contains
-
-- `runmacro`: A runner for DiffPy macro files.
-- `agentify`: A deployer for diffpy.cmi agentic skills.
-- `Diffpy MCP server`: A local server for the DiffPy MCP instance.
+User applications to help with tasks using diffpy packages.
+Currently it provides:
+1. Macro interface for PDF refinements. Supported by the command ``runmacro``.
+2. Agent interface for PDF refinements. Supported by the included MCP server.
 
 For more information about the diffpy.apps library, please consult our `online documentation <https://diffpy.github.io/diffpy.apps>`_.
 
