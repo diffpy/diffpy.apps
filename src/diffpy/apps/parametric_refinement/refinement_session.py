@@ -537,9 +537,9 @@ class RefinementSession:
             for var_name, value in constraints[0].items():
                 if var_name not in recipe._parameters:
                     recipe.create_new_variable(var_name, value)
-            for constrainted_name, constraint_eq_str in constraints[1].items():
-                constrainted_var = self.get_variable(constrainted_name)["obj"]
-                recipe.add_constraint(constrainted_var, constraint_eq_str)
+            for constrained_name, constraint_eq_str in constraints[1].items():
+                constrained_var = self.get_variable(constrained_name)["obj"]
+                recipe.add_constraint(constrained_var, constraint_eq_str)
 
         variables = [self.get_variable(name)["obj"] for name in variable_names]
         variable_names = ["_".join(name.split(".")) for name in variable_names]
@@ -584,9 +584,9 @@ class RefinementSession:
             result_string = "Refinement Finished."
 
         if constraints:
-            for constrainted_name, constraint_eq_str in constraints[1].items():
-                constrainted_var = self.get_variable(constrainted_name)["obj"]
-                recipe.remove_constraint(constrainted_var)
+            for constrained_name, constraint_eq_str in constraints[1].items():
+                constrained_var = self.get_variable(constrained_name)["obj"]
+                recipe.remove_constraint(constrained_var)
         return {
             "success": bool(result.success),
             "status": int(result.status),
