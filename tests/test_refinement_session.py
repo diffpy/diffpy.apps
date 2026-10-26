@@ -203,6 +203,85 @@ def test_refine_ni():
         )
 
 
+def test_constraints():
+    # C1: Mannly apply the constraints.
+    #  Expect get the correct results and the contrsaints has no effect on
+    #  the session.
+    session = RefinementSession()
+    session.add_profile_from_file(
+        profile_name="ni_profile", profile_path=str(_DATA_DIR / "Ni.gr")
+    )
+    session.set_profile_calculation_range(
+        profile_name="ni_profile",
+        xmin=1.5,
+        xmax=20,
+        dx=0.01,
+    )
+    session.update_profile_meta(
+        profile_name="ni_profile",
+        meta={"qmin": 0.1},
+    )
+    session.add_pdf_model(
+        model_name="pdf",
+        structure_file_path=str(_DATA_DIR / "Ni.cif"),
+        finite=False,
+    )
+    session.set_variables_value(
+        name_value_dict={
+            "pdf.phase.lattice.a": 3.52,
+            "pdf.scale": 0.4,
+            "pdf.phase.Ni0.Uiso": 0.005,
+            "pdf.delta2": 2,
+            "pdf.qdamp": 0.04,
+            "pdf.qbroad": 0.02,
+            "pdf.phase.lattice.alpha": 90,
+            "pdf.phase.lattice.beta": 90,
+            "pdf.phase.lattice.gamma": 90,
+        },
+    )
+    session.solve(
+        profile_names=["ni_profile"],
+        model_names=["pdf"],
+        constraints=[
+            {"lattice": None, "uiso": None},
+            {
+                "pdf.phase.lattice.a": "lattice",
+                "pdf.phase.lattice.b": "lattice",
+                "pdf.phase.lattice.c": "lattice",
+                "pdf.phase.Ni0.Uiso": "uiso",
+                "pdf.phase.Ni1.Uiso": "uiso",
+                "pdf.phase.Ni2.Uiso": "uiso",
+                "pdf.phase.Ni3.Uiso": "uiso",
+            },
+        ],
+        variable_names=[
+            "lattice",
+            "pdf.scale",
+            "uiso",
+            "pdf.delta2",
+            "pdf.qdamp",
+            "pdf.qbroad",
+        ],
+    )
+    name_to_cmi_name = {
+        "pdf.scale": "s0",
+        "pdf.phase.lattice.a": "G1_a",
+        "pdf.phase.Ni0.Uiso": "G1_Uiso_0",
+        "pdf.delta2": "G1_delta2",
+        "pdf.qdamp": "qdamp",
+        "pdf.qbroad": "qbroad",
+    }
+    ni_refined_parameters = run_ni_example()
+    for name, cmi_name in name_to_cmi_name.items():
+        assert numpy.isclose(
+            session.get_variable(name)["value"],
+            ni_refined_parameters[cmi_name],
+            rtol=1e-2,
+        )
+    recipe = list(session.recipes_dict.values())[0]
+    assert len(recipe._constraints) == 0
+
+
 def test_refine_multi_contribution():
     session = RefinementSession()
     session.add_profile_from_file(
