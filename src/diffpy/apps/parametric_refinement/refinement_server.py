@@ -453,7 +453,13 @@ async def list_models() -> list[str]:
 @mcp.tool()
 @tool_errors
 async def combine_models(
-    parent_model_name: Annotated[str, "Name of the parent parametric model"],
+    parent_model_name: Annotated[
+        str,
+        (
+            "Name of the parent parametric model."
+            " Must be instance of ParametricModelEquation."
+        ),
+    ],
     child_model_names: Annotated[
         list[str], "Names of the child parametric models"
     ],

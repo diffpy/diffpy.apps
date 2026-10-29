@@ -212,6 +212,10 @@ class RefinementSession:
                     "found in the session."
                 )
         parent_model = self.models_dict[parent_model_name]
+        if not isinstance(parent_model, ParametricModelEquation):
+            raise ValueError(
+                f"Parent model '{parent_model_name}' is not an equation model."
+            )
         for child_model_name in child_model_names:
             child_model = self.models_dict[child_model_name]
             parent_model.register_submodel(child_model)
