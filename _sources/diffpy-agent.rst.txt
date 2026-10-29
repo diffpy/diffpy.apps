@@ -4,24 +4,101 @@ DiffPy Agent Interface
 =======================
 This interface is provided for agents, e.g. ``Claude Code`` and ``Codex``,
 which mainly utilizes the "tool" concept applied in most agent frameworks.
-After connecting these tools to an agent, users can invoke DiffPy
+After connecting these tools to an agent, users can invoke ``DiffPy``
 functionalities and automate PDF refinements through conversation.
-
-After you have installed ``diffpy.apps``, the next step is to connect it to
-your local agent. ``diffpy.apps`` server should be able to connect to any
-Desktop agent that supports the MCP (Model Context Protocol), and we have provided
-instructions for :ref:`connect_claude_desktop` and :ref:`connect_chatgpt_desktop` below.
 
 .. _mcp_setup:
 
 Setup
 -----
 
-.. _connect_claude_desktop:
+After you have installed ``diffpy.apps``, the next step is to connect it to
+your local agent. The configurations are required for the first time only.
 
-Connect to Claude Desktop
-~~~~~~~~~~~~~~~~~~~~~~~~~
-1. Copy the path to the conda executable. There are many commands available,
+``diffpy.apps`` communicates with the agent through the
+MCP (Model Context Protocol), and thus can be configured for any agents
+that support the MCP. Here we provide the setup instructions for ``Claude``
+agent and ``ChatGPT`` agent.
+
+.. _connect_claude:
+
+For Claude User
+~~~~~~~~~~~~~~~~
+
+How to connect to Claude Code Terminal
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1. Install ``Claude Code`` terminal.
+
+2. Copy the path to the ``conda`` executable. There are many commands available,
+and here are two examples:
+
+.. code-block:: bash
+
+    whereis conda  # linux or macOS terminal
+    where.exe conda  # windows powershell
+
+3. Replace ``<path/to/conda>`` with the path to your ``conda`` executable and ``<conda_env_name>`` with the name of your conda environment, then run the following command:
+
+.. code-block:: bash
+
+    claude mcp add --scope local diffpy-apps -- \
+    <path/to/conda> run --no-capture-output -n <conda_env_name> \
+    python -m diffpy.apps.parametric_refinement.refinement_server \
+
+.. note::
+
+    The ``claude mcp add`` command saves the server configuration according to the
+    scope you specify:
+
+    ``--scope local`` adds it to the project-specific section of
+    ``~/.claude.json``.
+
+    ``--scope project`` adds it to the project's ``.mcp.json``.
+
+    ``--scope user`` adds it to the top-level configuration in
+    ``~/.claude.json``.
+
+    The default scope is ``local``.
+
+
+.. note::
+
+    ``diffpy.apps`` MCP server is launched by ``conda`` instead of the commonly
+    used ``uv`` because one of ``diffpy.apps`` core dependencies, ``diffpy.srreal`` is
+    better managed via ``conda``
+
+
+4. Restart the ``Claude CLI``
+5. Run the following command in the conversation with ``Claude CLI`` to verify the connection:
+
+.. code-block:: bash
+
+    /mcp
+
+6. Check :ref:`agent_example` to see how to use it to perform PDF refinement.
+
+7. To remove the configuration, run the following command in the the terminal:
+
+.. code-block:: bash
+
+    claude mcp remove "diffpy-apps" -s local
+
+replace ``local`` with the actual scope you used when adding the configuration.
+
+
+How to connect to Claude Desktop
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1. Install ``Claude Code`` Desktop.
+2. Open ``Claude Desktop`` and open "Settings".
+3. Navigate to the "Developer" section.
+4. In the "Local MCP servers" region, click "Edit Config" and Open the configuration file. Its name should be ``claude_desktop_config.json``.
+
+.. Figure:: img/claude_edit_config.png
+    :align: center
+
+    Figure 1: Screenshot of "Edit Config" in ``Claude Desktop``.
+
+5. Copy the path to the conda executable. There are many commands available,
 here are two examples
 
 .. code-block:: bash
@@ -29,17 +106,8 @@ here are two examples
     whereis conda  # linux or macOS terminal
     where.exe conda  # windows powershell
 
-2. Install ``Claude Desktop`` (hereafter referred to as ``Claude``).
-3. Open ``Claude`` and open "Settings".
-4. Navigate to the "Developer" section.
-5. In the "Local MCP servers" region, click "Edit Config" and Open the configuration file. It's name should be ``claude_desktop_config.json``.
 
-.. Figure:: img/claude_edit_config.png
-    :align: center
-
-    Figure 1: Screenshot of "Edit Config" in ``Claude``.
-
-6. Add the following configuration, and replace ``</path/to/conda>`` with the path to your conda executable and ``<conda_env_name>`` with the name of your conda environment.
+3. Replace ``<path/to/conda>`` with the path to your ``conda`` executable and ``<conda_env_name>`` with the name of your conda environment, then add the configuration as shown below.
 
 .. code-block:: json
 
@@ -67,12 +135,12 @@ would look like this:
     {
         "mcpServers": {
             "diffpy.apps": {
-            "command": "/path/to/bin/conda",
+            "command": "/Users/mr_neutron/miniconda3/bin/conda",
             "args": [
                 "run",
                 "--no-capture-output",
                 "-n",
-                "diffpy_apps",
+                "diffpy.apps_env",
                 "python",
                 "-m",
                 "diffpy.apps.parametric_refinement.refinement_server"
@@ -89,12 +157,12 @@ would look like this:
     {
         "mcpServers": {
             "diffpy.apps": {
-            "command": "C:\\path\\to\\bin\\conda.bat",
+            "command": "C:\\Users\\mr_neutron\\miniconda3\\condabin\\conda.bat",
             "args": [
                 "run",
                 "--no-capture-output",
                 "-n",
-                "diffpy_apps",
+                "diffpy.apps_env",
                 "python",
                 "-m",
                 "diffpy.apps.parametric_refinement.refinement_server"
@@ -103,7 +171,6 @@ would look like this:
         },
         "other_configurations": "other_configurations"
     }
-
 
 
 7. Restart the ``Claude``.
@@ -116,12 +183,20 @@ would look like this:
 
     Figure 2: Screenshot of active ``diffpy.apps`` server in ``Claude``.
 
+9. Check :ref:`agent_example` to see how to use it to perform PDF refinement.
 
-.. _connect_chatgpt_desktop:
+10. To remove the configuration, remove the added block from the configuration file.
 
-Connect to ChatGPT Desktop
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-1. Copy the path to the conda executable. There are many commands available,
+.. _connect_chatgpt:
+
+For ChatGPT users
+~~~~~~~~~~~~~~~~~
+
+1. Install the Desktop version or Terminal version of ``ChatGPT``.
+
+2. Open the configuration file ``~/.codex/config.toml``.
+
+3. Copy the path to the conda executable. There are many commands available,
 here are two examples
 
 .. code-block:: bash
@@ -129,9 +204,8 @@ here are two examples
     whereis conda  # linux or macOS terminal
     where.exe conda  # windows powershell
 
-1. Install ``ChatGPT Desktop`` (hereafter referred to as ``ChatGPT``).
-2. Open ``~/.codex/config.toml``.
-3. Add the following configuration, and replace ``<path/to/python>`` with the path to the Python executable in your conda environment.
+
+4. Replace ``<path/to/conda>`` with the path to your ``conda`` executable and ``<conda_env_name>`` with the name of your conda environment, then add the configuration as shown below.
 
 .. code-block:: toml
 
@@ -153,9 +227,11 @@ here are two examples
     double backslashes (e.g., ``C:\\path\\to\\bin\\conda.bat``).
 
 
-4. Restart the ``ChatGPT``.
+4. Restart the ``ChatGPT Desktop`` or ``Codex``.
 
-5. Open "Settings", and navigate to the "Integration" section. Open
+5. Verify the connection of the ``diffpy.apps`` server.
+
+For ``ChatGPT`` Desktop, open "Settings", and navigate to the "Integration" section. Open
 "Plugins" tab, and verify that the ``diffpy.apps`` server is listed in the
 "MCPs" field and active.
 
@@ -164,38 +240,149 @@ here are two examples
 
     Figure 2: Screenshot of active ``diffpy.apps`` server in ``ChatGPT``.
 
+For ``ChatGPT`` Terminal (``Codex``), enter the following command in the conversation with the agent:
+
+.. code-block:: bash
+
+    /mcp
+
+6. Check :ref:`agent_example` to see how to use it to perform PDF refinement.
+
+7. To remove the configuration, delete the added block from the configuration file.
+
+.. _agent_example:
 
 Example Usage
 -------------
-Once you ``diffpy.apps`` MCP server is running, you can interact with it
-through the agent.
 
-Here is a simple example of conducting Ni structure refinement.
+After successfully connecting the ``diffpy.apps`` server to your agent,
+you can interact with it to perform PDF refinement tasks.
+Please see :ref:`mcp_setup` for instructions.
 
-1. Download the :download:`Ni.gr<data/Ni.gr>` and :download:`Ni.cif<data/Ni.cif>`
-files to your working directory.
+Here we assume that you are using ``Claude Code`` Desktop as your agent. If you are
+using a different agent, please replace ``Claude`` in the following steps.
 
-2. Open ``Claude``, launch the "Code" tab or select "Cowork" in "Chat or Cowork"
+.. _general_refinement:
+General expression refinement
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1. Download the :download:`gaussian profile<data/gaussian.dat>` to your working directory.
+2. Open ``Claude Code`` Desktop, launch the "Code" tab or select "Cowork" in "Chat or Cowork"
 tab.
 
-3. Add the working directory folder to the ``Claude``.
+.. note::
 
-4. Start your conversation! For example, try to ask
-*Tell me what can diffpy.apps do and how it can help me refine the
-Ni.cif against the Ni.gr.*
+    In some Desktop distributions, the developers provide separate
+    channels for agent interactions, and the
+    Chat-only window may not have access to the MCP servers. When
+    this happens, make sure to switch to the Agent interaction channel.
 
+    Terminal distributions can usually discover the MCP servers automatically.
+
+3. Add the working directory folder to the ``Claude Code`` Desktop.
+
+4. Interact with the agent to solve tasks.
+
+For example, Mr Neutron had the following conversation to have the agent solved
+a Gaussian refinement task.
+
+.. code-block:: text
+
+    > (Mr Neutron) Make sure you can find `diffpy.apps` MCP server and `gaussian.dat`
+    > (Agent) I find both...
+    > (Mr Neutron) Use diffpy.apps MCP server to create a equation model `Aexp(-(x-u)^2/(2s^2))`
+    > (Agent) I added an equation model called gaussian to the diffpy.apps session...
+        The server lists four parameters for it: A, u, s and x, all with no value yet...
+    > (Mr Neutron) Set the initial values of `A`, `u`, and `s` to be 0.8, 0.2,
+        and 0.8 , and make a plot of the equation model and the profile
+    > (Agent) I set A = 0.8, u = 0.2 and s = 0.8 on the gaussian model and plotted
+        it against the profile from gaussian.dat. To do so, I ...
+
+And the following image is given by ``Claude Code`` Desktop:
+
+.. figure:: img/example_bad_gaussian.png
+    :align: center
+
+    Gaussian plot (before refinement). Generated by Claude Code
+
+The conversation continues with Mr Neutron asking the agent to refine the equation model:
+
+.. code-block:: text
+
+    > (Mr Neutron) Refine the equation model against the profile, and plot the
+    refined equation model and the profile
+    > (Agent) The fit converged and the Gaussian matches the data closely,
+    with Rw = 0.0034. The data looks like a unit Gaussian, A = 1, u = 0, s = 1,
+    plus a little noise.
+
+.. figure:: img/example_good_gaussian.png
+    :align: center
+
+    Gaussian plot (after refinement). Generated by Claude Code
+
+Mr. Neutron is satisfied with the refined Gaussian plot.
+
+.. _pdf_refinement:
+PDF(Pair Distribution Function) refinement
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It would be very similar to the :ref:`general_refinement`,
+but copy the following files to your working directory instead.
+
+- :download:`Ni.gr<data/Ni.gr>`
+- :download:`Ni.cif<data/Ni.cif>`
+
+For example, Mr Neutron had the following conversation to have the agent solved
+a Ni PDF refinement task.
+
+.. code-block:: text
+
+    > (Mr Neutron) Make sure you can find `diffpy.apps` MCP server, `Ni.cif` and `Ni.gr`
+    > (Agent) Yes, I found both files in your ...
+    > (Mr Neutron) Use diffpy.apps MCP server
+        1. Add `Ni.gr` as Profile
+        2. Add `Ni.cif` as PDF model
+        3. Plot them together
+    > (Agent) I added both files with the diffpy server and ...
+
+and the following image shows the result:
+
+.. figure:: img/example_bad_ni.png
+    :align: center
+
+    Ni PDF plot(before refinement). Generated by Claude Code
+
+Mr Neutron knows that the initial plot is not ideal because the structure has not been refined yet. So he continues:
+
+.. code-block:: text
+
+    > (Mr Neutron) The plot looks incorrect. Now refine the Ni structure:
+        1. constrain Ni structure according to it's spacegroup symmetry
+        2. refine ni.scale and other space group symmetry parameters
+        3. fit it over the range from 1-20 angstrum for simplicity
+    > (Agent) I refined the Ni model under Fm-3m symmetry over 1-20 Å.
+        Rw (the fit's weighted residual) went from 0.59
+        with only scale refined to 0.161 with all three parameters.
+        The plot is saved as ...
+
+and the following image shows the refined result:
+
+.. figure:: img/example_good_ni.png
+    :align: center
+
+    Ni PDF plot(after refinement). Generated by Claude Code
+
+Mr Neutron is satisfied with the refined result.
+
+.. _diffpy-agent-skills:
 
 How to add Diffpy agent skills
 ------------------------------
 
-Another advantage of using the Diffpy agent is that its behavior can be
-tuned to suit specific tasks and workflows by adding custom skills and
-context.
+In previous example, Mr Neutron still needs to write down the sequence of
+actions for the simple PDF refinement task. The effort can be further reduced
+by adding our prepared agent skills into the context.
 
-We have prepared a basic skill that you can readily deploy and use with the
-Diffpy agent.
-
-To use it, run
+To use it, run the following command in the terminal after installing ``diffpy.apps``.
 
 .. code-block:: bash
 
@@ -259,10 +446,13 @@ Skills are simply markdown files providing context for the agents.
 They help to enable the agent to follow the best practices, and to
 efficiently perform workflows sharing similar patterns.
 Please refer to the documentation from your favorite agent platform, such as
-`Claude Documentation <https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview>`_
+`Claude Documentation <https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview>`_,
 for more details.
 
 ``diffpy-app agentify`` fetches our prepared agent skills from
 `cmi-agent-skills <https://github.com/diffpy/cmi-agent-skills>`_  GitHub repository.
 If you are willing to contribute your skills, you can submit Pull Requests in
-the same repository. Thanks for sharing your work with the community!
+the same repository.
+We expect the description of the workflows to follow the consistent format and wording
+conventions, i.e. the diffpy macro language. Please see :doc:`diffpy-macro` for more
+details.  Thanks for sharing your work with the community!
