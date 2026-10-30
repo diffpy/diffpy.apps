@@ -449,11 +449,10 @@ class ParametricModelPDF(ParametricModelBase, ParametricModelABC):
     def constrain_symmetry(self, spacegroup_symbol=None):
         if spacegroup_symbol is None:
             spacegroup_symbol = self.space_group_symbol
-        else:
-            self.space_group_symbol = spacegroup_symbol
         space_group_parset = constrain_as_space_group(
             self._generator.phase, spacegroup_symbol
         )
+        self.space_group_symbol = spacegroup_symbol
         # hide constrained parameters in the graph
         if self.use_uiso:
             symmetry_par_names = [
