@@ -1,13 +1,12 @@
 import inspect
 import json
 import logging
-import uuid
-from collections.abc import Callable
 from functools import wraps
-from typing import Annotated
+from typing import Annotated, Literal
 
 from mcp.server import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
+from pydantic import Field
 
 from diffpy.apps.parametric_refinement.refinement_session import (
     RefinementSession,
@@ -53,11 +52,21 @@ def tool_errors(func):
 @mcp.tool()
 @tool_errors
 async def add_profile_from_file(
-    profile_path: Annotated[str, "Path to the profile file"],
-    profile_name: Annotated[str, "Unique name for the profile"] = None,
-    xname: Annotated[str, "Name of the x-axis for the profile"] = "x",
-    yname: Annotated[str, "Name of the y-axis for the profile"] = "y",
-    dyname: Annotated[str, "Name of the y-uncertainty for the profile"] = "dy",
+    profile_path: Annotated[
+        str, Field(description="Path to the profile file")
+    ],
+    profile_name: Annotated[
+        str, Field(description="Unique name for the profile")
+    ],
+    xname: Annotated[
+        str, Field(description="Name of the x-axis for the profile")
+    ] = "x",
+    yname: Annotated[
+        str, Field(description="Name of the y-axis for the profile")
+    ] = "y",
+    dyname: Annotated[
+        str, Field(description="Name of the y-uncertainty for the profile")
+    ] = "dy",
 ) -> str:
     """Add a profile to the refinement session from a file."""
     session.add_profile_from_file(
@@ -73,13 +82,23 @@ async def add_profile_from_file(
 @mcp.tool()
 @tool_errors
 async def add_profile_from_arrays(
-    xarray: Annotated[list, "X-values of the profile"],
-    yarray: Annotated[list, "Y-values of the profile"],
-    dy: Annotated[list, "Uncertainties in the y-values"] = None,
-    profile_name: Annotated[str, "Unique name for the profile"] = None,
-    xname: Annotated[str, "Name of the x-axis for the profile"] = "x",
-    yname: Annotated[str, "Name of the y-axis for the profile"] = "y",
-    dyname: Annotated[str, "Name of the y-uncertainty for the profile"] = "dy",
+    profile_name: Annotated[
+        str, Field(description="Unique name for the profile")
+    ],
+    xarray: Annotated[list, Field(description="X-values of the profile")],
+    yarray: Annotated[list, Field(description="Y-values of the profile")],
+    dy: Annotated[
+        list | None, Field(description="Uncertainties in the y-values")
+    ] = None,
+    xname: Annotated[
+        str, Field(description="Name of the x-axis for the profile")
+    ] = "x",
+    yname: Annotated[
+        str, Field(description="Name of the y-axis for the profile")
+    ] = "y",
+    dyname: Annotated[
+        str, Field(description="Name of the y-uncertainty for the profile")
+    ] = "dy",
 ) -> str:
     """Add a profile to the refinement session from arrays."""
     session.add_profile_from_arrays(
@@ -98,11 +117,20 @@ async def add_profile_from_arrays(
 @tool_errors
 async def set_profile_calculation_range(
     profile_name: Annotated[
-        str, "Name of the profile to set the calculation range for"
+        str,
+        Field(
+            description="Name of the profile to set the calculation range for"
+        ),
     ],
-    xmin: Annotated[float, "Start of the calculation range"] = None,
-    xmax: Annotated[float, "End of the calculation range"] = None,
-    dx: Annotated[float, "Step size for the calculation range"] = None,
+    xmin: Annotated[
+        float | None, Field(description="Start of the calculation range")
+    ] = None,
+    xmax: Annotated[
+        float | None, Field(description="End of the calculation range")
+    ] = None,
+    dx: Annotated[
+        float | None, Field(description="Step size for the calculation range")
+    ] = None,
 ) -> str:
     """Set the calculation range for a profile in the refinement
     session."""
@@ -118,7 +146,9 @@ async def set_profile_calculation_range(
 @mcp.tool()
 @tool_errors
 async def check_profile_meta(
-    profile_name: Annotated[str, "Name of the profile to check metadata for"],
+    profile_name: Annotated[
+        str, Field(description="Name of the profile to check metadata for")
+    ],
 ) -> dict:
     """Check the metadata for a profile in the refinement session."""
     return session.check_profile_meta(profile_name)
@@ -127,8 +157,10 @@ async def check_profile_meta(
 @mcp.tool()
 @tool_errors
 async def update_profile_meta(
-    profile_name: Annotated[str, "Name of the profile to update"],
-    meta: Annotated[dict, "Profile metadata to update"],
+    profile_name: Annotated[
+        str, Field(description="Name of the profile to update")
+    ],
+    meta: Annotated[dict, Field(description="Profile metadata to update")],
 ) -> str:
     """Update metadata for a profile in the refinement session."""
     session.update_profile_meta(profile_name, meta)
@@ -138,7 +170,9 @@ async def update_profile_meta(
 @mcp.tool()
 @tool_errors
 async def remove_profile(
-    profile_name: Annotated[str, "Name of the profile to remove"],
+    profile_name: Annotated[
+        str, Field(description="Name of the profile to remove")
+    ],
 ) -> str:
     """Remove a profile from the refinement session."""
     session.remove_profile(profile_name)
@@ -148,8 +182,12 @@ async def remove_profile(
 @mcp.tool()
 @tool_errors
 async def add_equation_model(
-    equation_string: Annotated[str, "Equation for the parametric model"],
-    model_name: Annotated[str, "Name of the parametric model"] = uuid.uuid4(),
+    equation_string: Annotated[
+        str, Field(description="Equation for the parametric model")
+    ],
+    model_name: Annotated[
+        str, Field(description="Name of the parametric model")
+    ],
 ) -> str:
     """Add an equation-based parametric model to the refinement session.
 
@@ -170,28 +208,46 @@ async def add_equation_model(
 @mcp.tool()
 @tool_errors
 async def add_pdf_model(
-    finite: Annotated[
-        bool, "Whether to use DebyePDFGenerator instead of PDFGenerator"
+    model_name: Annotated[
+        str, Field(description="Name of the parametric model")
     ],
-    model_name: Annotated[str, "Name of the parametric model"] = uuid.uuid4(),
-    structure_file_path: Annotated[str, "Path to the structure file"] = None,
-    from_model_name: Annotated[
-        str, "Name of the existing model to base the new model on"
+    structure_file_path: Annotated[
+        str | None, Field(description="Path to the structure file")
     ] = None,
+    from_model_name: Annotated[
+        str | None,
+        Field(
+            description="Name of the existing model to base the new model on"
+        ),
+    ] = None,
+    finite: Annotated[
+        bool,
+        Field(
+            description=(
+                "Whether to use DebyePDFGenerator instead of PDFGenerator"
+            )
+        ),
+    ] = False,
     code: Annotated[
-        str, "Code that builds a structure to base the new model on"
+        str | None,
+        Field(
+            description="Code that builds a structure to base the new model on"
+        ),
     ] = None,
     library: Annotated[
-        str, "Structure library to use ('Diffpy' or 'ObjCryst')"
+        str | None,
+        Field(description="Structure library to use ('Diffpy' or 'ObjCryst')"),
     ] = "Diffpy",
     global_namespace: Annotated[
-        dict, "Global namespace to execute 'code' in"
+        dict | None, Field(description="Global namespace to execute 'code' in")
     ] = None,
     local_structure_name: Annotated[
-        str, "Name of the structure variable assigned by 'code'"
+        str,
+        Field(description="Name of the structure variable assigned by 'code'"),
     ] = "structure",
     run_parallel: Annotated[
-        bool, "Whether to run the PDF model in parallel"
+        bool,
+        Field(description="Whether to run the PDF model in parallel"),
     ] = True,
 ) -> str:
     """Add a structure-file-based parametric model to the refinement
@@ -204,6 +260,7 @@ async def add_pdf_model(
     structure_file_path : str, optional
         Path to the structure file.
     from_model_name : str, optional
+        Name of the existing model to base the new model on.
     code : str, optional
         Code that builds a structure to base the new model on.
     library : str, optional
@@ -244,18 +301,34 @@ async def add_pdf_model(
 @mcp.tool()
 @tool_errors
 async def add_function_model(
-    model_name: Annotated[str, "Name of the parametric model"],
-    function: Annotated[Callable | str, "Function or callable for the model"],
+    model_name: Annotated[
+        str, Field(description="Name of the parametric model")
+    ],
+    function: Annotated[
+        Literal[
+            "spherical_particle",
+            "spheroidal_particle",
+            "lognormal_spherical_particle",
+            "sheet_particle",
+            "shell_particle",
+            "SASCF",
+            "sphericalCF",
+            "spheroidalCF",
+            "spheroidalCF2",
+            "lognormalSphericalCF",
+            "sheetCF",
+            "shellCF",
+            "shellCF2",
+        ],
+        Field(description="Name of the predefined function for the model"),
+    ],
     argnames: Annotated[
-        list[str] | None, "Argument names for the function"
+        list[str] | None, Field(description="Argument names for the function")
     ] = None,
 ) -> str:
     """Add a function model to the refinement session.
 
-    function can be either a callable or a string representing
-    the pre-defined function.
-    One and only one of func or characteristic_func_name must be provided.
-    Allowed value for characteristic_func_name:
+    Allowed value for function:
         "spherical_particle",
         "spheroidal_particle",
         "lognormal_spherical_particle",
@@ -281,8 +354,12 @@ async def add_function_model(
 @mcp.tool()
 @tool_errors
 async def set_model_equation(
-    model_name: Annotated[str, "Name of the parametric model"],
-    equation: Annotated[str, "New equation for the parametric model"],
+    model_name: Annotated[
+        str, Field(description="Name of the parametric model")
+    ],
+    equation: Annotated[
+        str, Field(description="New equation for the parametric model")
+    ],
 ) -> str:
     """Set the equation for an existing parametric model in the
     session."""
@@ -293,54 +370,74 @@ async def set_model_equation(
 @mcp.tool()
 @tool_errors
 async def get_model_evaluation(
-    model_name: Annotated[str, "Name of the parametric model"],
+    model_name: Annotated[
+        str, Field(description="Name of the parametric model")
+    ],
     data_path: Annotated[
-        str, "The path to the file where the evaluation will be written"
+        str,
+        Field(
+            description=(
+                "The path to the file where the evaluation will be written"
+            )
+        ),
     ],
     profile_name: Annotated[
-        str,
-        (
-            "Name of the profile to use for the evaluation. "
-            "If None, temporary profile will be created for the evaluation. "
-            "If both profile_name and xmin/xmax/dx are provided, "
-            "the profile's calculation range will be updated accordingly."
+        str | None,
+        Field(
+            description=(
+                "Name of the profile to use for the evaluation. "
+                "If None, temporary profile will be created for the "
+                "evaluation. "
+                "If both profile_name and xmin/xmax/dx are provided, "
+                "the profile's calculation range will be updated accordingly."
+            )
         ),
     ] = None,
     xmin: Annotated[
         float | None,
-        (
-            "Minimum x value for the evaluation "
-            "if the profile is not set for the model"
+        Field(
+            description=(
+                "Minimum x value for the evaluation "
+                "if the profile is not set for the model"
+            )
         ),
     ] = None,
     xmax: Annotated[
         float | None,
-        (
-            "Maximum x value for the evaluation "
-            "if the profile is not set for the model"
+        Field(
+            description=(
+                "Maximum x value for the evaluation "
+                "if the profile is not set for the model"
+            )
         ),
     ] = None,
     dx: Annotated[
         float | None,
-        (
-            "Step size for the evaluation "
-            "if the profile is not set for the model"
+        Field(
+            description=(
+                "Step size for the evaluation "
+                "if the profile is not set for the model"
+            )
         ),
     ] = None,
     meta: Annotated[
         dict | None,
-        (
-            "Metadata to associate with the evaluation. "
-            "If None, no additional metadata will be added."
+        Field(
+            description=(
+                "Metadata to associate with the evaluation. "
+                "If None, no additional metadata will be added."
+            )
         ),
     ] = None,
     xname: Annotated[
         str,
-        (
-            "Name of the x variable for the evaluation "
-            "if the profile is not set for the model"
+        Field(
+            description=(
+                "Name of the x variable for the evaluation "
+                "if the profile is not set for the model"
+            )
         ),
-    ] = "r",
+    ] = "x",
 ) -> str:
     """Get the current evaluation of a parametric model."""
     r, ycalc = session.get_model_evaluation(
@@ -364,8 +461,12 @@ async def get_model_evaluation(
 @mcp.tool()
 @tool_errors
 async def set_model_profile(
-    model_name: Annotated[str, "Name of the parametric model"],
-    profile_name: Annotated[str, "Name of the profile to set on the model"],
+    model_name: Annotated[
+        str, Field(description="Name of the parametric model")
+    ],
+    profile_name: Annotated[
+        str, Field(description="Name of the profile to set on the model")
+    ],
 ) -> str:
     """Set the profile for a parametric model in the refinement
     session."""
@@ -376,8 +477,17 @@ async def set_model_profile(
 @mcp.tool()
 @tool_errors
 async def get_model_residual(
-    model_name: Annotated[str, "Name of the parametric model"],
-    data_path: Annotated[str, "Path to the data to retrieve"],
+    model_name: Annotated[
+        str, Field(description="Name of the parametric model")
+    ],
+    data_path: Annotated[
+        str,
+        Field(
+            description=(
+                "The path to the file where the residual will be written"
+            )
+        ),
+    ],
 ) -> str:
     """Get the current residual of a parametric model."""
     residual = session.get_model_residual(model_name=model_name).tolist()
@@ -391,8 +501,17 @@ async def get_model_residual(
 @mcp.tool()
 @tool_errors
 async def get_profile_data(
-    profile_name: Annotated[str, "Name of the profile to retrieve"],
-    data_path: Annotated[str, "Path to the data to retrieve"],
+    profile_name: Annotated[
+        str, Field(description="Name of the profile to retrieve")
+    ],
+    data_path: Annotated[
+        str,
+        Field(
+            description=(
+                "The path to the file where the profile data will be written"
+            )
+        ),
+    ],
 ) -> str:
     """Get the details of a specific profile in the refinement
     session."""
@@ -408,7 +527,9 @@ async def get_profile_data(
 @mcp.tool()
 @tool_errors
 async def remove_model(
-    model_name: Annotated[str, "Name of the model to remove"],
+    model_name: Annotated[
+        str, Field(description="Name of the model to remove")
+    ],
 ) -> str:
     """Remove a model from the refinement session."""
     session.remove_model(model_name)
@@ -418,9 +539,11 @@ async def remove_model(
 @mcp.tool()
 @tool_errors
 async def constrain_pdf_model_space_group_symmetry(
-    model_name: Annotated[str, "Name of the parametric model"],
+    model_name: Annotated[
+        str, Field(description="Name of the parametric model")
+    ],
     space_group: Annotated[
-        str, "Space group to constrain the model to"
+        str | None, Field(description="Space group to constrain the model to")
     ] = None,
 ) -> str:
     """Constrain a parametric model to a specific space group symmetry.
@@ -453,9 +576,20 @@ async def list_models() -> list[str]:
 @mcp.tool()
 @tool_errors
 async def combine_models(
-    parent_model_name: Annotated[str, "Name of the parent parametric model"],
+    parent_model_name: Annotated[
+        str,
+        Field(
+            description=(
+                "Name of the parent model. Must be an equation model "
+                "(from add_equation_model)."
+            )
+        ),
+    ],
     child_model_names: Annotated[
-        list[str], "Names of the child parametric models"
+        list[str],
+        Field(
+            description="Names of the models the parent's equation refers to."
+        ),
     ],
 ) -> str:
     """Combine two parametric models by registering the child to the
@@ -471,10 +605,15 @@ async def combine_models(
 @tool_errors
 async def set_variables_value(
     name_value_dict: Annotated[
-        dict, "Mapping of variable names to the values to set them to"
+        dict,
+        Field(
+            description=(
+                "Mapping of variable names to the values to set them to"
+            )
+        ),
     ],
 ) -> str:
-    """Set the value of a specific variable in a parametric model."""
+    """Set the value of variables in the current session."""
     session.set_variables_value(name_value_dict)
 
     return f"Variables '{name_value_dict}' are set."
@@ -483,9 +622,9 @@ async def set_variables_value(
 @mcp.tool()
 @tool_errors
 async def get_variable(
-    variable_name: Annotated[str, "Name of the variable"],
+    variable_name: Annotated[str, Field(description="Name of the variable")],
 ) -> str:
-    """Get the value of a specific variable in a parametric model."""
+    """Get the value of a specific variable in the current session."""
     variable = session.get_variable(variable_name)
     return f"Variable '{variable_name}': {variable['value']}"
 
@@ -493,9 +632,11 @@ async def get_variable(
 @mcp.tool()
 @tool_errors
 async def list_model_parameters(
-    model_name: Annotated[str, "Name of the parametric model"],
+    model_name: Annotated[
+        str, Field(description="Name of the parametric model")
+    ],
     independent_only: Annotated[
-        bool, "Whether to list only independent parameters"
+        bool, Field(description="Whether to list only independent parameters")
     ] = True,
 ) -> str:
     """List all parameters of a specific parametric model."""
@@ -526,7 +667,7 @@ async def clear() -> str:
 @mcp.tool()
 @tool_errors
 async def list_recipe_parameters(
-    recipe_name: Annotated[str, "Name of the recipe"],
+    recipe_name: Annotated[str, Field(description="Name of the recipe")],
 ) -> str:
     """List all parameters of a specific recipe."""
     if recipe_name not in session.recipes_dict:
@@ -540,47 +681,68 @@ async def list_recipe_parameters(
 @mcp.tool()
 @tool_errors
 async def solve(
+    name: Annotated[str, Field(description="Name of the refinement recipe.")],
     profile_names: Annotated[
-        list[str], "List of profile IDs to use in the refinement"
+        list[str],
+        Field(description="List of profile IDs to use in the refinement"),
     ],
     model_names: Annotated[
-        list[str], "List of model IDs to use in the refinement"
+        list[str],
+        Field(description="List of model IDs to use in the refinement"),
     ],
-    variable_names: Annotated[list[str], "List of variable names to refine"],
+    variable_names: Annotated[
+        list[str], Field(description="List of variable names to refine")
+    ],
     residual_equations: Annotated[
-        list[str], "List of residual equations for each profile"
+        list[str] | None,
+        Field(description="List of residual equations for each profile"),
     ] = None,
     constraints: Annotated[
-        list[dict],
-        (
-            "First dict is new_variable-initial value pair, "
-            "and the second dict is variable-constraint_equation pair."
+        list[dict] | None,
+        Field(
+            description=(
+                "First dict is new_variable-initial value pair, "
+                "and the second dict is variable-constraint_equation pair."
+            )
         ),
     ] = None,
     bounds: Annotated[
-        dict, "Dictionary of bounds for variables or equations"
+        dict | None,
+        Field(description="Dictionary of bounds for variables or equations"),
     ] = None,
-    name: Annotated[str, "Name of the refinement session"] = None,
     weights: Annotated[
-        list[float], "List of weights for each refinement profile"
+        list[float] | None,
+        Field(description="List of weights for each refinement profile"),
     ] = None,
     metas: Annotated[
-        list[dict], "List of metadata dictionaries for each profile"
+        list[dict] | None,
+        Field(description="List of metadata dictionaries for each profile"),
     ] = None,
     include_sgpars: Annotated[
-        bool, "Whether to also include sgpars from the models automatically"
+        bool,
+        Field(
+            description=(
+                "Whether to also include sgpars from the models automatically"
+            )
+        ),
     ] = False,
-    method: Annotated[str, "Optimizer method: trf, dogbox, or lm"] = "trf",
+    method: Annotated[
+        str, Field(description="Optimizer method: trf, dogbox, or lm")
+    ] = "trf",
     x_scale: Annotated[
-        float | str, "Optimizer parameter scaling, or 'jac'"
+        float | str, Field(description="Optimizer parameter scaling, or 'jac'")
     ] = 1.0,
     max_nfev: Annotated[
-        int | None, "Maximum number of function evaluations"
+        int | None, Field(description="Maximum number of function evaluations")
     ] = None,
-    ftol: Annotated[float, "Cost-function termination tolerance"] = 1e-8,
-    xtol: Annotated[float, "Step-size termination tolerance"] = 1e-8,
+    ftol: Annotated[
+        float, Field(description="Cost-function termination tolerance")
+    ] = 1e-8,
+    xtol: Annotated[
+        float, Field(description="Step-size termination tolerance")
+    ] = 1e-8,
     background: Annotated[
-        bool, "Run asynchronously and return a job ID"
+        bool, Field(description="Run asynchronously and return a job ID")
     ] = False,
 ) -> dict | str:
     """Initiate a refinement using the specified profiles, models, and
@@ -617,8 +779,8 @@ async def solve(
             `param_or_eq` (if an equation string is used) but are not part
             of the RecipeOrganizer (default is {}).
         # end copied from diffpy.srfit docstring
-    name : str, optional
-        Name of the refinement session.
+    name : str
+        Name of the refinement recipe.
     weights : list[float], optional
         List of weights for each refinement profile.
     metas : list[dict], optional
@@ -673,7 +835,7 @@ async def solve(
 @mcp.tool()
 @tool_errors
 async def get_solve_status(
-    job_id: Annotated[str, "Background refinement job ID"],
+    job_id: Annotated[str, Field(description="Background refinement job ID")],
 ) -> dict:
     """Return the status and result of a background refinement job."""
     return session.get_job_status(job_id)

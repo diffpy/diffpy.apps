@@ -65,6 +65,7 @@ async def test_refine_sine():
         await mcp_client.call_tool(
             "solve",
             {
+                "name": "sine_refinement",
                 "profile_names": ["sine_profile"],
                 "model_names": ["sine_model"],
                 "variable_names": ["sine_model.A"],
@@ -153,6 +154,7 @@ async def test_refine_ni():
         await mcp_client.call_tool(
             "solve",
             {
+                "name": "ni_refinement",
                 "profile_names": ["ni_profile"],
                 "model_names": ["ni_model"],
                 "variable_names": variable_names,
@@ -300,6 +302,7 @@ async def test_refine_multi_contribution():
         await mcp_client.call_tool(
             "solve",
             {
+                "name": "multi_contribution_refinement",
                 "profile_names": [
                     "ni_xray",
                     "ni_neutron",
@@ -437,6 +440,7 @@ async def test_refine_nanoparticle_example():
         await mcp_client.call_tool(
             "solve",
             {
+                "name": "nanoparticle_refinement",
                 "profile_names": ["pb"],
                 "model_names": ["main"],
                 "variable_names": [
