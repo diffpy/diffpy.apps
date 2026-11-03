@@ -15,8 +15,12 @@ Setup
 After you have installed ``diffpy.apps``, the next step is to connect it to
 your local agent. The configurations are required for the first time only.
 
-``diffpy.apps`` communicates with the agent through the
-MCP (Model Context Protocol), and thus can be configured for any agents
+The interface ``cmi-agentic-ui`` is part of ``diffpy.apps``, for other
+functionalities that ``diffpy.apps`` provides, please refer to :doc:`index`
+
+``cmi-agentic-ui`` works by launching a local server that communicates with
+the agent using the MCP (Model Context Protocol). All computations are
+performed in the server side. The setup should work for any agents
 that support the MCP. Here we provide the setup instructions for ``Claude``
 agent and ``ChatGPT`` agent.
 
@@ -41,7 +45,7 @@ and here are two examples:
 
 .. code-block:: bash
 
-    claude mcp add --scope local diffpy-apps -- \
+    claude mcp add --scope local cmi-agentic-ui -- \
     <path/to/conda> run --no-capture-output -n <conda_env_name> \
     python -m diffpy.apps.parametric_refinement.refinement_server \
 
@@ -63,8 +67,8 @@ and here are two examples:
 
 .. note::
 
-    ``diffpy.apps`` MCP server is launched by ``conda`` instead of the commonly
-    used ``uv`` because one of ``diffpy.apps`` core dependencies, ``diffpy.srreal`` is
+    ``cmi-agentic-ui`` MCP server is launched by ``conda`` instead of the commonly
+    used ``uv`` because one of its core dependencies, ``diffpy.srreal`` is
     better managed via ``conda``
 
 
@@ -81,9 +85,9 @@ and here are two examples:
 
 .. code-block:: bash
 
-    claude mcp remove "diffpy-apps" -s local
+    claude mcp remove "cmi-agentic-ui" -s local
 
-replace ``local`` with the actual scope you used when adding the configuration.
+Replace ``local`` with the actual scope you used when adding the configuration.
 
 
 How to connect to Claude Desktop
@@ -97,6 +101,13 @@ How to connect to Claude Desktop
     :align: center
 
     Figure 1: Screenshot of "Edit Config" in ``Claude Desktop``.
+
+.. note:: 
+
+    The ``Claude Desktop`` interface is subject to change, and the steps 
+    described here may vary slightly depending on the version you are using.
+    Try search for "Developer" tab in the "settings" or ask for the agent
+    directly about "How to connect to a Local MCP server".
 
 5. Copy the path to the conda executable. There are many commands available,
 here are two examples
@@ -112,7 +123,7 @@ here are two examples
 .. code-block:: json
 
     "mcpServers": {
-        "diffpy.apps": {
+        "cmi-agentic-ui": {
             "command": "</path/to/conda>",
             "args": [
             "run",
@@ -126,7 +137,7 @@ here are two examples
         }
     }
 
-For example, If Mr Neutron installed ``diffpy.apps`` in the ``diffpy_apps``
+For example, If Mr Neutron installed ``diffpy.apps`` in the ``diffpy.apps_env``
 conda environment, his ``claude_desktop_config.json`` in the Linux/macOS system
 would look like this:
 
@@ -134,7 +145,7 @@ would look like this:
 
     {
         "mcpServers": {
-            "diffpy.apps": {
+            "cmi-agentic-ui": {
             "command": "/Users/mr_neutron/miniconda3/bin/conda",
             "args": [
                 "run",
@@ -156,7 +167,7 @@ would look like this:
 
     {
         "mcpServers": {
-            "diffpy.apps": {
+            "cmi-agentic-ui": {
             "command": "C:\\Users\\mr_neutron\\miniconda3\\condabin\\conda.bat",
             "args": [
                 "run",
@@ -176,12 +187,12 @@ would look like this:
 7. Restart the ``Claude``.
 
 8. Go to the same "Local MCP servers" section and verify that the
-``diffpy.apps`` server is listed and active.
+``cmi-agentic-ui`` server is listed and active.
 
 .. figure:: img/claude_validate.png
     :align: center
 
-    Figure 2: Screenshot of active ``diffpy.apps`` server in ``Claude``.
+    Figure 2: Screenshot of active ``cmi-agentic-ui`` server in ``Claude``.
 
 9. Check :ref:`agent_example` to see how to use it to perform PDF refinement.
 
@@ -209,7 +220,7 @@ here are two examples
 
 .. code-block:: toml
 
-    [mcp_servers.diffpy_apps]
+    [mcp_servers.cmi-agentic-ui]
     command =  "<path/to/conda>"
     args = [
         "run",
@@ -229,16 +240,16 @@ here are two examples
 
 4. Restart the ``ChatGPT Desktop`` or ``Codex``.
 
-5. Verify the connection of the ``diffpy.apps`` server.
+5. Verify the connection of the ``cmi-agentic-ui`` server.
 
 For ``ChatGPT`` Desktop, open "Settings", and navigate to the "Integration" section. Open
-"Plugins" tab, and verify that the ``diffpy.apps`` server is listed in the
+"Plugins" tab, and verify that the ``cmi-agentic-ui`` server is listed in the
 "MCPs" field and active.
 
 .. figure:: img/chatgpt_validate.png
     :align: center
 
-    Figure 2: Screenshot of active ``diffpy.apps`` server in ``ChatGPT``.
+    Figure 2: Screenshot of active ``cmi-agentic-ui`` server in ``ChatGPT``.
 
 For ``ChatGPT`` Terminal (``Codex``), enter the following command in the conversation with the agent:
 
@@ -255,7 +266,7 @@ For ``ChatGPT`` Terminal (``Codex``), enter the following command in the convers
 Example Usage
 -------------
 
-After successfully connecting the ``diffpy.apps`` server to your agent,
+After successfully connecting the ``cmi-agentic-ui`` server to your agent,
 you can interact with it to perform PDF refinement tasks.
 Please see :ref:`mcp_setup` for instructions.
 
@@ -287,10 +298,10 @@ a Gaussian refinement task.
 
 .. code-block:: text
 
-    > (Mr Neutron) Make sure you can find `diffpy.apps` MCP server and `gaussian.dat`
+    > (Mr Neutron) Make sure you can find `cmi-agentic-ui` MCP server and `gaussian.dat`
     > (Agent) I find both...
-    > (Mr Neutron) Use diffpy.apps MCP server to create a equation model `Aexp(-(x-u)^2/(2s^2))`
-    > (Agent) I added an equation model called gaussian to the diffpy.apps session...
+    > (Mr Neutron) Use cmi-agentic-ui MCP server to create a equation model `Aexp(-(x-u)^2/(2s^2))`
+    > (Agent) I added an equation model called gaussian to the cmi-agentic-ui session...
         The server lists four parameters for it: A, u, s and x, all with no value yet...
     > (Mr Neutron) Set the initial values of `A`, `u`, and `s` to be 0.8, 0.2,
         and 0.8 , and make a plot of the equation model and the profile
@@ -336,9 +347,9 @@ a Ni PDF refinement task.
 
 .. code-block:: text
 
-    > (Mr Neutron) Make sure you can find `diffpy.apps` MCP server, `Ni.cif` and `Ni.gr`
+    > (Mr Neutron) Make sure you can find `cmi-agentic-ui` MCP server, `Ni.cif` and `Ni.gr`
     > (Agent) Yes, I found both files in your ...
-    > (Mr Neutron) Use diffpy.apps MCP server
+    > (Mr Neutron) Use cmi-agentic-ui MCP server
         1. Add `Ni.gr` as Profile
         2. Add `Ni.cif` as PDF model
         3. Plot them together
@@ -411,9 +422,9 @@ To update the existing ``diffpy.cmi`` agentic skill, use the ``--update`` flag:
 
 When the agent fails
 --------------------
-An agent using ``diffpy.apps`` is not guaranteed to handle every complicated PDF
+An agent using ``cmi-agentic-ui`` is not guaranteed to handle every complicated PDF
 refinement task by itself. Its success relies on tools in
-``diffpy.apps`` being executed in the correct order, and the knowledge of
+``cmi-agentic-ui`` being executed in the correct order, and the knowledge of
 how to generate the correct sequence of tool invocations comes from the
 LLM itself, the agent skills we have prepared, the local context and
 the user's prompt.
@@ -422,18 +433,18 @@ When the agent cannot handle a situation automatically, the user may need to
 intervene and manually guide the refinement process by providing
 instructions about the expected tool and arguments.
 
-Try to ask *"Please summarize available tools inside diffpy.apps concisely."*,
+Try to ask *"Please summarize available tools inside cmi-agentic-ui concisely."*,
 and you will get the response similarly to this
 
 .. code-block:: none
 
-    diffpy.apps is a set of 28 tools for running diffpy.srfit-style refinements,
+    cmi-agentic-ui is a set of 28 tools for running diffpy.srfit-style refinements,
     such as PDF fits, in a stateful session. Here they are by job:
     ...
 
 
 Getting familiar with the available tools and their usage will allow you to
-use ``diffpy.apps`` capabilities in your prompt effectively.
+use ``cmi-agentic-ui`` capabilities in your prompt effectively.
 General instructions are usually sufficient for the agent to find
 the correct tools.
 
