@@ -102,9 +102,9 @@ How to connect to Claude Desktop
 
     Figure 1: Screenshot of "Edit Config" in ``Claude Desktop``.
 
-.. note:: 
+.. note::
 
-    The ``Claude Desktop`` interface is subject to change, and the steps 
+    The ``Claude Desktop`` interface is subject to change, and the steps
     described here may vary slightly depending on the version you are using.
     Try search for "Developer" tab in the "settings" or ask for the agent
     directly about "How to connect to a Local MCP server".
