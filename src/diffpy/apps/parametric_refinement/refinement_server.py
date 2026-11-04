@@ -2,7 +2,7 @@ import inspect
 import json
 import logging
 from functools import wraps
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 from mcp.server import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
@@ -846,6 +846,115 @@ async def get_solve_status(
 async def list_running_jobs() -> list[dict]:
     """List pending and currently running background refinements."""
     return session.list_running_jobs()
+
+
+# Cluster screening tools use an in-memory library specification.
+# No structures or cross-call session state are persisted.
+@mcp.tool()
+@tool_errors
+async def generate_cluster_library(
+    element: str,
+    min_atoms: int,
+    max_atoms: int,
+    max_clusters: int = 20,
+    candidate_specs: list[dict] | None = None,
+    motif_ranges: dict | None = None,
+    lattice_constant: float | None = None,
+) -> dict[str, Any]:
+    """Preview a small ASE cluster library without writing XYZ files.
+
+    Pass exactly one of candidate_specs (individual builder
+    combinations) or motif_ranges (small Cartesian-product grids). The
+    maximum number of requested combinations is enforced before
+    generation.
+    """
+    from diffpy.apps.screening.cluster import (
+        generate_cluster_library as build_library,
+    )
+
+    library = build_library(
+        element,
+        min_atoms=min_atoms,
+        max_atoms=max_atoms,
+        max_clusters=max_clusters,
+        candidate_specs=candidate_specs,
+        motif_ranges=motif_ranges,
+        lattice_constant=lattice_constant,
+    )
+    # The MCP response is JSON only. ASE Atoms stay local to Python.
+    return {
+        "library_spec": {
+            "element": library["element"],
+            "min_atoms": library["min_atoms"],
+            "max_atoms": library["max_atoms"],
+            "max_clusters": library["max_clusters"],
+            "lattice_constant": library["lattice_constant_angstrom"],
+            "candidate_specs": [
+                {"motif": item["motif"], **item["parameters"]}
+                for item in library["requested_specs"]
+            ],
+        },
+        "ase_version": library["ase_version"],
+        "models": [
+            {key: value for key, value in item.items() if key != "atoms"}
+            for item in library["models"]
+        ],
+        "skipped": library["skipped"],
+    }
+
+
+@mcp.tool()
+@tool_errors
+async def screen_cluster_library(
+    preview: dict,
+    pdf_path: str,
+    refinement: dict,
+) -> dict[str, Any]:
+    """Refine candidates from a validated library preview, then rank by
+    Rw.
+
+    The candidates are reconstructed in memory from the preview's exact
+    ASE builder parameters. No XYZ files or persistent library state are
+    required. The same single-stage refinement is used for every model.
+    """
+    from diffpy.apps.screening.cluster import (
+        generate_cluster_library as build_library,
+    )
+    from diffpy.apps.screening.cluster_screen import (
+        screen_cluster_library as run_screen,
+    )
+
+    if not isinstance(preview, dict):
+        raise ValueError("preview must be a library preview dictionary.")
+    spec = preview.get("library_spec")
+    if not isinstance(spec, dict):
+        raise ValueError(
+            "The preview has no library_spec. "
+            "Call generate_cluster_library first."
+        )
+    library = build_library(**spec)
+    actual_models = [
+        {key: value for key, value in item.items() if key != "atoms"}
+        for item in library["models"]
+    ]
+    if (
+        preview.get("ase_version") != library["ase_version"]
+        or preview.get("models") != actual_models
+        or preview.get("skipped") != library["skipped"]
+    ):
+        raise ValueError(
+            "The preview no longer matches the generated structures. "
+            "Generate a new library preview before screening."
+        )
+    result = run_screen(
+        library,
+        pdf_path,
+        refinement,
+        max_clusters=spec["max_clusters"],
+    )
+    result["library_spec"] = spec
+    result["ase_version"] = library["ase_version"]
+    return result
 
 
 if __name__ == "__main__":

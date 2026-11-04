@@ -8,3 +8,4 @@ diffpy.srreal
 diffpy.structure
 networkx
 mcp[cli]
+ase
