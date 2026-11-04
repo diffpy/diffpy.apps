@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DiffPy Agent Interface &mdash; diffpy.apps 0.2.1 documentation</title>
+  <title>DiffPy Agent Interface &mdash; diffpy.apps 0.0.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -14,7 +14,7 @@
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=3ca669d2"></script>
+      <script src="_static/documentation_options.js?v=f539c95a"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -105,8 +105,11 @@ functionalities and automate PDF refinements through conversation.</p>
 <span id="mcp-setup"></span><h2>Setup<a class="headerlink" href="#setup" title="Link to this heading"></a></h2>
 <p>After you have installed <code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code>, the next step is to connect it to
 your local agent. The configurations are required for the first time only.</p>
-<p><code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code> communicates with the agent through the
-MCP (Model Context Protocol), and thus can be configured for any agents
+<p>The interface <code class="docutils literal notranslate"><span class="pre">cmi-agentic-ui</span></code> is part of <code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code>, for other
+functionalities that <code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code> provides, please refer to <a class="reference internal" href="index.html"><span class="doc">diffpy.apps documentation</span></a></p>
+<p><code class="docutils literal notranslate"><span class="pre">cmi-agentic-ui</span></code> works by launching a local server that communicates with
+the agent using the MCP (Model Context Protocol). All computations are
+performed in the server side. The setup should work for any agents
 that support the MCP. Here we provide the setup instructions for <code class="docutils literal notranslate"><span class="pre">Claude</span></code>
 agent and <code class="docutils literal notranslate"><span class="pre">ChatGPT</span></code> agent.</p>
 <section id="for-claude-user">
@@ -125,7 +128,7 @@ where.exe<span class="w"> </span>conda<span class="w">  </span><span class="c1">
 <ol class="arabic simple" start="3">
 <li><p>Replace <code class="docutils literal notranslate"><span class="pre">&lt;path/to/conda&gt;</span></code> with the path to your <code class="docutils literal notranslate"><span class="pre">conda</span></code> executable and <code class="docutils literal notranslate"><span class="pre">&lt;conda_env_name&gt;</span></code> with the name of your conda environment, then run the following command:</p></li>
 </ol>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>claude<span class="w"> </span>mcp<span class="w"> </span>add<span class="w"> </span>--scope<span class="w"> </span><span class="nb">local</span><span class="w"> </span>diffpy-apps<span class="w"> </span>--<span class="w"> </span><span class="se">\</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>claude<span class="w"> </span>mcp<span class="w"> </span>add<span class="w"> </span>--scope<span class="w"> </span><span class="nb">local</span><span class="w"> </span>cmi-agentic-ui<span class="w"> </span>--<span class="w"> </span><span class="se">\</span>
 &lt;path/to/conda&gt;<span class="w"> </span>run<span class="w"> </span>--no-capture-output<span class="w"> </span>-n<span class="w"> </span>&lt;conda_env_name&gt;<span class="w"> </span><span class="se">\</span>
 python<span class="w"> </span>-m<span class="w"> </span>diffpy.apps.parametric_refinement.refinement_server<span class="w"> </span><span class="se">\</span>
 </pre></div>
@@ -143,8 +146,8 @@ scope you specify:</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p><code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code> MCP server is launched by <code class="docutils literal notranslate"><span class="pre">conda</span></code> instead of the commonly
-used <code class="docutils literal notranslate"><span class="pre">uv</span></code> because one of <code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code> core dependencies, <code class="docutils literal notranslate"><span class="pre">diffpy.srreal</span></code> is
+<p><code class="docutils literal notranslate"><span class="pre">cmi-agentic-ui</span></code> MCP server is launched by <code class="docutils literal notranslate"><span class="pre">conda</span></code> instead of the commonly
+used <code class="docutils literal notranslate"><span class="pre">uv</span></code> because one of its core dependencies, <code class="docutils literal notranslate"><span class="pre">diffpy.srreal</span></code> is
 better managed via <code class="docutils literal notranslate"><span class="pre">conda</span></code></p>
 </div>
 <ol class="arabic simple" start="4">
@@ -158,10 +161,10 @@ better managed via <code class="docutils literal notranslate"><span class="pre">
 <li><p>Check <a class="reference internal" href="#agent-example"><span class="std std-ref">Example Usage</span></a> to see how to use it to perform PDF refinement.</p></li>
 <li><p>To remove the configuration, run the following command in the the terminal:</p></li>
 </ol>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>claude<span class="w"> </span>mcp<span class="w"> </span>remove<span class="w"> </span><span class="s2">"diffpy-apps"</span><span class="w"> </span>-s<span class="w"> </span><span class="nb">local</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>claude<span class="w"> </span>mcp<span class="w"> </span>remove<span class="w"> </span><span class="s2">"cmi-agentic-ui"</span><span class="w"> </span>-s<span class="w"> </span><span class="nb">local</span>
 </pre></div>
 </div>
-<p>replace <code class="docutils literal notranslate"><span class="pre">local</span></code> with the actual scope you used when adding the configuration.</p>
+<p>Replace <code class="docutils literal notranslate"><span class="pre">local</span></code> with the actual scope you used when adding the configuration.</p>
 </section>
 <section id="how-to-connect-to-claude-desktop">
 <h4>How to connect to Claude Desktop<a class="headerlink" href="#how-to-connect-to-claude-desktop" title="Link to this heading"></a></h4>
@@ -177,6 +180,13 @@ better managed via <code class="docutils literal notranslate"><span class="pre">
 <p><span class="caption-text">Figure 1: Screenshot of “Edit Config” in <code class="docutils literal notranslate"><span class="pre">Claude</span> <span class="pre">Desktop</span></code>.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
 </figcaption>
 </figure>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Claude</span> <span class="pre">Desktop</span></code> interface is subject to change, and the steps
+described here may vary slightly depending on the version you are using.
+Try search for “Developer” tab in the “settings” or ask for the agent
+directly about “How to connect to a Local MCP server”.</p>
+</div>
 <p>5. Copy the path to the conda executable. There are many commands available,
 here are two examples</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>whereis<span class="w"> </span>conda<span class="w">  </span><span class="c1"># linux or macOS terminal</span>
@@ -187,7 +197,7 @@ where.exe<span class="w"> </span>conda<span class="w">  </span><span class="c1">
 <li><p>Replace <code class="docutils literal notranslate"><span class="pre">&lt;path/to/conda&gt;</span></code> with the path to your <code class="docutils literal notranslate"><span class="pre">conda</span></code> executable and <code class="docutils literal notranslate"><span class="pre">&lt;conda_env_name&gt;</span></code> with the name of your conda environment, then add the configuration as shown below.</p></li>
 </ol>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="nt">"mcpServers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">"diffpy.apps"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"cmi-agentic-ui"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;/path/to/conda&gt;"</span><span class="p">,</span>
 <span class="w">        </span><span class="nt">"args"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">        </span><span class="s2">"run"</span><span class="p">,</span>
@@ -202,12 +212,12 @@ where.exe<span class="w"> </span>conda<span class="w">  </span><span class="c1">
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>For example, If Mr Neutron installed <code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code> in the <code class="docutils literal notranslate"><span class="pre">diffpy_apps</span></code>
+<p>For example, If Mr Neutron installed <code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code> in the <code class="docutils literal notranslate"><span class="pre">diffpy.apps_env</span></code>
 conda environment, his <code class="docutils literal notranslate"><span class="pre">claude_desktop_config.json</span></code> in the Linux/macOS system
 would look like this:</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">    </span><span class="nt">"mcpServers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">"diffpy.apps"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"cmi-agentic-ui"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/Users/mr_neutron/miniconda3/bin/conda"</span><span class="p">,</span>
 <span class="w">        </span><span class="nt">"args"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">            </span><span class="s2">"run"</span><span class="p">,</span>
@@ -227,7 +237,7 @@ would look like this:</p>
 <p>, and in the Windows system, it would look like this:</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">    </span><span class="nt">"mcpServers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">"diffpy.apps"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"cmi-agentic-ui"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"C:\\Users\\mr_neutron\\miniconda3\\condabin\\conda.bat"</span><span class="p">,</span>
 <span class="w">        </span><span class="nt">"args"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">            </span><span class="s2">"run"</span><span class="p">,</span>
@@ -248,11 +258,11 @@ would look like this:</p>
 <li><p>Restart the <code class="docutils literal notranslate"><span class="pre">Claude</span></code>.</p></li>
 </ol>
 <p>8. Go to the same “Local MCP servers” section and verify that the
-<code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code> server is listed and active.</p>
+<code class="docutils literal notranslate"><span class="pre">cmi-agentic-ui</span></code> server is listed and active.</p>
 <figure class="align-center" id="id2">
 <img alt="_images/claude_validate.png" src="_images/claude_validate.png" />
 <figcaption>
-<p><span class="caption-text">Figure 2: Screenshot of active <code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code> server in <code class="docutils literal notranslate"><span class="pre">Claude</span></code>.</span><a class="headerlink" href="#id2" title="Link to this image"></a></p>
+<p><span class="caption-text">Figure 2: Screenshot of active <code class="docutils literal notranslate"><span class="pre">cmi-agentic-ui</span></code> server in <code class="docutils literal notranslate"><span class="pre">Claude</span></code>.</span><a class="headerlink" href="#id2" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <ol class="arabic simple" start="9">
@@ -276,7 +286,7 @@ where.exe<span class="w"> </span>conda<span class="w">  </span><span class="c1">
 <ol class="arabic simple" start="4">
 <li><p>Replace <code class="docutils literal notranslate"><span class="pre">&lt;path/to/conda&gt;</span></code> with the path to your <code class="docutils literal notranslate"><span class="pre">conda</span></code> executable and <code class="docutils literal notranslate"><span class="pre">&lt;conda_env_name&gt;</span></code> with the name of your conda environment, then add the configuration as shown below.</p></li>
 </ol>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[mcp_servers.diffpy_apps]</span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[mcp_servers.cmi-agentic-ui]</span>
 <span class="n">command</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="s2">"&lt;path/to/conda&gt;"</span>
 <span class="n">args</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
 <span class="w">    </span><span class="s2">"run"</span><span class="p">,</span>
@@ -296,15 +306,15 @@ double backslashes (e.g., <code class="docutils literal notranslate"><span class
 </div>
 <ol class="arabic simple" start="4">
 <li><p>Restart the <code class="docutils literal notranslate"><span class="pre">ChatGPT</span> <span class="pre">Desktop</span></code> or <code class="docutils literal notranslate"><span class="pre">Codex</span></code>.</p></li>
-<li><p>Verify the connection of the <code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code> server.</p></li>
+<li><p>Verify the connection of the <code class="docutils literal notranslate"><span class="pre">cmi-agentic-ui</span></code> server.</p></li>
 </ol>
 <p>For <code class="docutils literal notranslate"><span class="pre">ChatGPT</span></code> Desktop, open “Settings”, and navigate to the “Integration” section. Open
-“Plugins” tab, and verify that the <code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code> server is listed in the
+“Plugins” tab, and verify that the <code class="docutils literal notranslate"><span class="pre">cmi-agentic-ui</span></code> server is listed in the
 “MCPs” field and active.</p>
 <figure class="align-center" id="id3">
 <img alt="_images/chatgpt_validate.png" src="_images/chatgpt_validate.png" />
 <figcaption>
-<p><span class="caption-text">Figure 2: Screenshot of active <code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code> server in <code class="docutils literal notranslate"><span class="pre">ChatGPT</span></code>.</span><a class="headerlink" href="#id3" title="Link to this image"></a></p>
+<p><span class="caption-text">Figure 2: Screenshot of active <code class="docutils literal notranslate"><span class="pre">cmi-agentic-ui</span></code> server in <code class="docutils literal notranslate"><span class="pre">ChatGPT</span></code>.</span><a class="headerlink" href="#id3" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>For <code class="docutils literal notranslate"><span class="pre">ChatGPT</span></code> Terminal (<code class="docutils literal notranslate"><span class="pre">Codex</span></code>), enter the following command in the conversation with the agent:</p>
@@ -319,7 +329,7 @@ double backslashes (e.g., <code class="docutils literal notranslate"><span class
 </section>
 <section id="example-usage">
 <span id="agent-example"></span><h2>Example Usage<a class="headerlink" href="#example-usage" title="Link to this heading"></a></h2>
-<p>After successfully connecting the <code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code> server to your agent,
+<p>After successfully connecting the <code class="docutils literal notranslate"><span class="pre">cmi-agentic-ui</span></code> server to your agent,
 you can interact with it to perform PDF refinement tasks.
 Please see <a class="reference internal" href="#mcp-setup"><span class="std std-ref">Setup</span></a> for instructions.</p>
 <p>Here we assume that you are using <code class="docutils literal notranslate"><span class="pre">Claude</span> <span class="pre">Code</span></code> Desktop as your agent. If you are
@@ -345,10 +355,10 @@ this happens, make sure to switch to the Agent interaction channel.</p>
 </ol>
 <p>For example, Mr Neutron had the following conversation to have the agent solved
 a Gaussian refinement task.</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt; (Mr Neutron) Make sure you can find `diffpy.apps` MCP server and `gaussian.dat`
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt; (Mr Neutron) Make sure you can find `cmi-agentic-ui` MCP server and `gaussian.dat`
 &gt; (Agent) I find both...
-&gt; (Mr Neutron) Use diffpy.apps MCP server to create a equation model `Aexp(-(x-u)^2/(2s^2))`
-&gt; (Agent) I added an equation model called gaussian to the diffpy.apps session...
+&gt; (Mr Neutron) Use cmi-agentic-ui MCP server to create a equation model `Aexp(-(x-u)^2/(2s^2))`
+&gt; (Agent) I added an equation model called gaussian to the cmi-agentic-ui session...
     The server lists four parameters for it: A, u, s and x, all with no value yet...
 &gt; (Mr Neutron) Set the initial values of `A`, `u`, and `s` to be 0.8, 0.2,
     and 0.8 , and make a plot of the equation model and the profile
@@ -389,9 +399,9 @@ but copy the following files to your working directory instead.</p>
 </ul>
 <p>For example, Mr Neutron had the following conversation to have the agent solved
 a Ni PDF refinement task.</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt; (Mr Neutron) Make sure you can find `diffpy.apps` MCP server, `Ni.cif` and `Ni.gr`
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt; (Mr Neutron) Make sure you can find `cmi-agentic-ui` MCP server, `Ni.cif` and `Ni.gr`
 &gt; (Agent) Yes, I found both files in your ...
-&gt; (Mr Neutron) Use diffpy.apps MCP server
+&gt; (Mr Neutron) Use cmi-agentic-ui MCP server
     1. Add `Ni.gr` as Profile
     2. Add `Ni.cif` as PDF model
     3. Plot them together
@@ -452,24 +462,24 @@ specify the specific agent:</p>
 </section>
 <section id="when-the-agent-fails">
 <h2>When the agent fails<a class="headerlink" href="#when-the-agent-fails" title="Link to this heading"></a></h2>
-<p>An agent using <code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code> is not guaranteed to handle every complicated PDF
+<p>An agent using <code class="docutils literal notranslate"><span class="pre">cmi-agentic-ui</span></code> is not guaranteed to handle every complicated PDF
 refinement task by itself. Its success relies on tools in
-<code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code> being executed in the correct order, and the knowledge of
+<code class="docutils literal notranslate"><span class="pre">cmi-agentic-ui</span></code> being executed in the correct order, and the knowledge of
 how to generate the correct sequence of tool invocations comes from the
 LLM itself, the agent skills we have prepared, the local context and
 the user’s prompt.</p>
 <p>When the agent cannot handle a situation automatically, the user may need to
 intervene and manually guide the refinement process by providing
 instructions about the expected tool and arguments.</p>
-<p>Try to ask <em>“Please summarize available tools inside diffpy.apps concisely.”</em>,
+<p>Try to ask <em>“Please summarize available tools inside cmi-agentic-ui concisely.”</em>,
 and you will get the response similarly to this</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>diffpy.apps is a set of 28 tools for running diffpy.srfit-style refinements,
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cmi-agentic-ui is a set of 28 tools for running diffpy.srfit-style refinements,
 such as PDF fits, in a stateful session. Here they are by job:
 ...
 </pre></div>
 </div>
 <p>Getting familiar with the available tools and their usage will allow you to
-use <code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code> capabilities in your prompt effectively.
+use <code class="docutils literal notranslate"><span class="pre">cmi-agentic-ui</span></code> capabilities in your prompt effectively.
 General instructions are usually sufficient for the agent to find
 the correct tools.</p>
 </section>
