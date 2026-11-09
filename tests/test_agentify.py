@@ -83,15 +83,15 @@ def test_agentify_update(mock_clone_skills):
     )
     assert skill_path.exists()
     args.update = True
-    agentify(args)
-    pytest.raises(
+    with pytest.raises(
         FileExistsError,
         match=re.escape(
             "Agentic skill diffpy-playbook already exists at "
             f"{skill_path}. "
             "To overwrite, pass '--update' flag to update the skill"
         ),
-    )
+    ):
+        agentify(args)
     # C2: Deploy again with --update flag when skill already exists
     #  with a dummy file in the skill directory.
     #  Expect no error to be raised, and the skill is updated.
