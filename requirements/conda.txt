@@ -1,10 +1,10 @@
+diffpy.cmi
+diffpy.srfit >=3.4.0
+diffpy.srreal
 numpy
 scipy
-psutil
 textx
+psutil
 pyyaml
-diffpy.srfit
-diffpy.srreal
-diffpy.structure
 networkx
 mcp
