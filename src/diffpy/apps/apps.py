@@ -1,6 +1,6 @@
 import argparse
 
-from diffpy.apps.app_agentify import agentify
+from diffpy.apps.app_agentify import agentify, list_skills
 from diffpy.apps.app_runmacro import runmacro
 from diffpy.apps.version import __version__  # noqa
 
@@ -69,10 +69,22 @@ def main():
         action="store_true",
         help="When set, deploy the agentic skill to the system directory.",
     )
+    agentify_subparsers = agentify_parser.add_subparsers(
+        title="agentify subcommands",
+        dest="agentify_command",
+    )
+    # agentify list subcommand
+    list_parser = agentify_subparsers.add_parser(
+        "list",
+        help="List available agentic skills.",
+    )
+    list_parser.set_defaults(func=list_skills)
     agentify_parser.set_defaults(func=agentify)
     args = parser.parse_args()
     if args.application is None:
         parser.print_help()
+    elif args.application == "agentify" and args.agentify_command is None:
+        agentify_parser.print_help()
     else:
         args.func(args)
 

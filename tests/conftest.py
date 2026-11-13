@@ -1,4 +1,5 @@
 import json
+import subprocess
 from pathlib import Path
 
 import numpy
@@ -47,19 +48,23 @@ def sine_profile():
 
 @pytest.fixture
 def mock_clone_skills(user_filesystem, mocker):
-    def fake_clone(cmd, **kwargs):
-        # the last argument is the temporary directory to clone into
-        target_dir = Path(cmd[-1])
-        (target_dir / "skills.json").write_text(
-            json.dumps(["diffpy-playbook"])
+    skills_brief = {"diffpy-playbook": {"description": "Playbook skill."}}
+
+    def fake_run(cmd, **kwargs):
+        if "clone" in cmd:
+            # The last argument is the temporary directory to clone into
+            target_dir = Path(cmd[-1])
+            (target_dir / "skills.json").write_text(json.dumps(skills_brief))
+            skill_dir = target_dir / "diffpy-playbook"
+            skill_dir.mkdir()
+            (skill_dir / "SKILL.md").write_text("skill")
+        return subprocess.CompletedProcess(
+            cmd, 0, stdout=json.dumps(skills_brief), stderr=""
         )
-        skill_dir = target_dir / "diffpy-playbook"
-        skill_dir.mkdir()
-        (skill_dir / "SKILL.md").write_text("skill")
 
     mocker.patch("diffpy.apps.app_agentify.ensure_setup", return_value=True)
     mocker.patch(
-        "diffpy.apps.app_agentify.subprocess.run", side_effect=fake_clone
+        "diffpy.apps.app_agentify.subprocess.run", side_effect=fake_run
     )
     mocker.patch.object(
         Path, "home", return_value=user_filesystem / "home_dir"

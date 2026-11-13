@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from diffpy.apps.app_agentify import agentify
+from diffpy.apps.app_agentify import agentify, list_skills
 
 
 @pytest.mark.parametrize(
@@ -65,6 +65,13 @@ def test_agentify(args, expected_scope, expected_skill_dir, mock_clone_skills):
     scope_dir = {"cwd": "cwd_dir", "home": "home_dir"}[expected_scope]
     expected_path = mock_clone_skills / scope_dir / expected_skill_dir
     assert expected_path.exists()
+
+
+def test_list_skills(mock_clone_skills, capsys):
+    # C1: diffpy.apps agentify list
+    #   Expect the available skills are listed.
+    list_skills(SimpleNamespace())
+    assert "diffpy-playbook: Playbook skill." in capsys.readouterr().out
 
 
 def test_agentify_update(mock_clone_skills):
