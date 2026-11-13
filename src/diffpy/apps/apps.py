@@ -69,6 +69,15 @@ def main():
         action="store_true",
         help="When set, deploy the agentic skill to the system directory.",
     )
+    agentify_parser.add_argument(
+        "--skill",
+        nargs="*",
+        help=(
+            "Skill name(s) to deploy. "
+            "If not specified, all skills are deployed."
+        ),
+        dest="requested_skill_names",
+    )
     agentify_subparsers = agentify_parser.add_subparsers(
         title="agentify subcommands",
         dest="agentify_command",
@@ -77,6 +86,15 @@ def main():
     list_parser = agentify_subparsers.add_parser(
         "list",
         help="List available agentic skills.",
+    )
+    list_parser.add_argument(
+        "--skill",
+        nargs="*",
+        help=(
+            "Skill name(s) to show details for. "
+            "If not specified, all skills are listed."
+        ),
+        dest="requested_skill_names",
     )
     list_parser.set_defaults(func=list_skills)
     agentify_parser.set_defaults(func=agentify)

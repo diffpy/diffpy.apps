@@ -89,11 +89,23 @@ def list_skills(args):
 
     with cloned_skills() as tmp_path:
         skills_brief_dict = json.loads((tmp_path / "skills.json").read_text())
-        n_skills_to_show = 10
-        for i, name in enumerate(skills_brief_dict):
-            if i >= n_skills_to_show:
-                break
-            print_skill(name, skills_brief_dict)
+        if args.requested_skill_names is None:
+            # No skills specified, print up to 10 skills
+            n_skills_to_show = 10
+            for i, name in enumerate(skills_brief_dict):
+                if i >= n_skills_to_show:
+                    break
+                print_skill(name, skills_brief_dict)
+        else:
+            # skills specified by the user.
+            for name in args.requested_skill_names:
+                if name not in skills_brief_dict:
+                    warnings.warn(
+                        f"Skill '{name}' not found. "
+                        f"Run 'agentify list' to see available skills."
+                    )
+                    continue
+                print_skill(name, skills_brief_dict)
 
 
 def agentify(args):
@@ -116,7 +128,24 @@ def agentify(args):
     # clone the skills repository and deploy requested skills
     with cloned_skills() as tmp_path:
         skills_brief_dict = json.loads((tmp_path / "skills.json").read_text())
+        if args.requested_skill_names is not None:
+            unknown_names = [
+                name
+                for name in args.requested_skill_names
+                if name not in skills_brief_dict
+            ]
+            if unknown_names:
+                raise ValueError(
+                    f"Skill(s) {unknown_names} not found. "
+                    "Run 'agentify list' to see available skills."
+                )
         for skill_name in skills_brief_dict:
+            if (
+                args.requested_skill_names is not None
+                and skill_name not in args.requested_skill_names
+            ):
+                # skip when skill is not requested
+                continue
             subprocess.run(
                 [
                     "git",
