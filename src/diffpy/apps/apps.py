@@ -1,5 +1,7 @@
 import argparse
 
+from rich.prompt import Confirm
+
 from diffpy.apps.app_agentify import agentify, list_skills
 from diffpy.apps.app_runmacro import runmacro
 from diffpy.apps.version import __version__  # noqa
@@ -102,7 +104,8 @@ def main():
     if args.application is None:
         parser.print_help()
     elif args.application == "agentify" and args.agentify_command is None:
-        agentify_parser.print_help()
+        if Confirm.ask("Deploy all agentic skills to the environment?"):
+            args.func(args)
     else:
         args.func(args)
 
