@@ -85,24 +85,31 @@ def test_agentify(args, expected_scope, expected_skill_dir, mock_clone_skills):
 
 
 @pytest.mark.parametrize(
-    "requested_skill_names",
+    "requested_skill_names, expected_output",
     [
         # C1: diffpy.apps agentify list
         #   No skill name provided.
-        #   Expect the available skills are listed without warnings.
-        None,
+        #   Expect the brief listing without warnings.
+        (None, "diffpy-playbook: Playbook skill."),
         # C2: diffpy.apps agentify list --skill diffpy-playbook
         #   A valid skill name provided.
-        #   Expect the requested skill is listed without warnings.
-        ["diffpy-playbook"],
+        #   Expect the detailed listing without warnings.
+        (
+            ["diffpy-playbook"],
+            "diffpy-playbook\n  description  Playbook skill.",
+        ),
     ],
 )
 def test_list_skills(
-    requested_skill_names, mock_clone_skills, capsys, recwarn
+    requested_skill_names,
+    expected_output,
+    mock_clone_skills,
+    capsys,
+    recwarn,
 ):
     args = SimpleNamespace(requested_skill_names=requested_skill_names)
     list_skills(args)
-    assert "diffpy-playbook: Playbook skill." in capsys.readouterr().out
+    assert expected_output in capsys.readouterr().out
     assert len(recwarn) == 0
 
 
