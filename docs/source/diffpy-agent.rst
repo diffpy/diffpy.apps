@@ -274,11 +274,14 @@ Here we assume that you are using ``Claude Code`` Desktop as your agent. If you 
 using a different agent, please replace ``Claude`` in the following steps.
 
 .. _general_refinement:
+
 General expression refinement
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 1. Download the :download:`gaussian profile<data/gaussian.dat>` to your working directory.
-2. Open ``Claude Code`` Desktop, launch the "Code" tab or select "Cowork" in "Chat or Cowork"
-tab.
+
+2. Open ``Claude Code`` Desktop, launch the "Code" tab or select "Cowork" in
+"Chat or Cowork" tab.
 
 .. note::
 
@@ -288,6 +291,7 @@ tab.
     this happens, make sure to switch to the Agent interaction channel.
 
     Terminal distributions can usually discover the MCP servers automatically.
+
 
 3. Add the working directory folder to the ``Claude Code`` Desktop.
 
@@ -333,6 +337,7 @@ The conversation continues with Mr Neutron asking the agent to refine the equati
 Mr. Neutron is satisfied with the refined Gaussian plot.
 
 .. _pdf_refinement:
+
 PDF(Pair Distribution Function) refinement
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -399,6 +404,12 @@ To use it, run the following command in the terminal after installing ``diffpy.a
 
     diffpy-app agentify
 
+To list available agent skills, run the following command:
+
+.. code-block:: bash
+
+    diffpy-app agentify --list
+
 ``claude`` and ``codex`` agent skills are supported. By default, it is
 deployed as the ``claude`` agent skill. Use the ``--agent`` option to
 specify the specific agent:
@@ -419,6 +430,7 @@ To update the existing ``diffpy.cmi`` agentic skill, use the ``--update`` flag:
 
     diffpy-app agentify --update
 
+.. _when-agent-fails:
 
 When the agent fails
 --------------------
@@ -453,17 +465,63 @@ the correct tools.
 How to contribute Diffpy agent skills
 -------------------------------------
 
-Skills are simply markdown files providing context for the agents.
-They help to enable the agent to follow the best practices, and to
-efficiently perform workflows sharing similar patterns.
-Please refer to the documentation from your favorite agent platform, such as
-`Claude Documentation <https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview>`_,
-for more details.
+We maintain a github repository
+`cmi-agent-skills <https://github.com/diffpy/cmi-agent-skills>`_ of reviewed
+skills for PDF structure modeling tasks. Contributions from the community are
+welcome to bring AI usefulness to structure modeling practices. Users can
+deploy the agent skills from that repository by
 
-``diffpy-app agentify`` fetches our prepared agent skills from
-`cmi-agent-skills <https://github.com/diffpy/cmi-agent-skills>`_  GitHub repository.
-If you are willing to contribute your skills, you can submit Pull Requests in
-the same repository.
-We expect the description of the workflows to follow the consistent format and wording
-conventions, i.e. the diffpy macro language. Please see :doc:`diffpy-macro` for more
-details.  Thanks for sharing your work with the community!
+.. code-block:: bash
+
+    diffpy-app agentify
+
+or download the corresponding skill folders directly.
+
+How to create agent skills
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To create agent skills, please refer
+to the documentation from your favorite agent platform, such as
+`Claude documentation <https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview>`_
+or
+`OpenAI documentation <https://learn.chatgpt.com/docs/build-skills>`_ for details.
+For effectiveness consideration, we recommend developers to write out the
+the tool name and their arguments clearly whenever possible in describing
+the workflow.
+
+For example, here is a part of our base skill ``diffpy-playbook``:
+
+.. code-block:: none
+
+    ## Case A — nested equation models (no structure, e.g. fitting `A*sin(a*x)`)
+
+    ```
+    add_profile_from_arrays(xarray=[...], yarray=[...], profile_name="sine_profile")
+    add_equation_model(model_name="sub", equation_str="a*x")
+    add_equation_model(model_name="main", equation_str="A*sin(sub)")
+    combine_models(parent_model_name="main", child_model_names=["sub"])   // "sub" is registered under its own model name
+    [...]
+    ```
+
+It's readability is targeted for agents rather than humans, but you can
+always ask the agent to generate and explain it for you.  For example, here is
+what Mr. Neutron did to generate a Ni structure modeling skill.
+
+.. code-block:: text
+
+    > (Mr Neutron) Summarize our structure modeling workflow by stacking "tool_name(arguments)"
+    > (Agent)
+    # 1. Load data and structure
+    add_profile_from_file(profile_path="/path/to/Ni.gr", profile_name="Ni_gr")
+    add_pdf_model(model_name="Ni_cif", structure_file_path="/path/to/Ni.cif", finite=False)
+    set_model_profile(model_name="Ni_cif", profile_name="Ni_gr")
+    [...]
+
+
+How to submit agent skills
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+To submit the created agent skills, please submit Pull Requests (PRs) to the
+`cmi-agent-skills <https://github.com/diffpy/cmi-agent-skills>`_ . Please
+refer to the
+`GitHub documentation <https://docs.github.com/en/pull-requests/reference/pull-requests>`_
+for detailed information.
