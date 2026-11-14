@@ -72,20 +72,30 @@ def list_skills(args):
         theme=Theme(
             {
                 "skill_name": "bold cyan",
-                "description": "green",
+                "key": "green",
+                "value": "grey70",
             }
         )
     )
 
-    def print_skill(name, skills_brief_dict):
+    def print_skill_brief(name, skills_brief_dict):
         line = Text(f"{name}: ", style="skill_name")
         if "description" not in skills_brief_dict[name]:
             skills_brief_dict[name][
                 "description"
             ] = "Description not available."
         description = skills_brief_dict[name]["description"]
-        line.append(str(description), style="description")
+        line.append(str(description), style="value")
         console.print(line)
+
+    def print_skill_details(name, skills_brief_dict):
+        console.print(Text(name, style="skill_name"))
+        fields = skills_brief_dict[name]
+        width = max((len(key) for key in fields), default=0)
+        for key, value in fields.items():
+            line = Text(f"  {key:<{width}}  ", style="key")
+            line.append(str(value), style="value")
+            console.print(line)
 
     with cloned_skills() as tmp_path:
         skills_brief_dict = json.loads((tmp_path / "skills.json").read_text())
@@ -95,7 +105,7 @@ def list_skills(args):
             for i, name in enumerate(skills_brief_dict):
                 if i >= n_skills_to_show:
                     break
-                print_skill(name, skills_brief_dict)
+                print_skill_brief(name, skills_brief_dict)
         else:
             # skills specified by the user.
             for name in args.requested_skill_names:
@@ -105,7 +115,7 @@ def list_skills(args):
                         f"Run 'agentify list' to see available skills."
                     )
                     continue
-                print_skill(name, skills_brief_dict)
+                print_skill_details(name, skills_brief_dict)
 
 
 def agentify(args):
