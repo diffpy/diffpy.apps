@@ -554,8 +554,9 @@ class RefinementSession:
         variable_names = ["_".join(name.split(".")) for name in variable_names]
         tag_manager = recipe._tagmanager
         for i, var in enumerate(variables):
-            if var in recipe._parameters.values():
-                tag_manager.tag(var, "listed_var")
+            existing = recipe._parameters.get(variable_names[i])
+            if existing is not None:
+                tag_manager.tag(existing, "listed_var")
                 continue
             if var.name in recipe._parameters:
                 recipe.delete_variable(recipe._parameters[var.name])
