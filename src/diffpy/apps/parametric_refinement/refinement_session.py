@@ -509,8 +509,9 @@ class RefinementSession:
         ftol=1e-8,
         xtol=1e-8,
     ):
-        recipe = FitRecipe()
-        self.recipes_dict[name] = recipe
+        if name not in self.recipes_dict:
+            self.recipes_dict[name] = FitRecipe()
+        recipe = self.recipes_dict[name]
         if weights is None:
             weights = numpy.ones(len(profiles))
         if residual_equations is None:
@@ -521,6 +522,8 @@ class RefinementSession:
             for i in range(len(metas)):
                 profiles[i].meta.update(metas[i])
         for i in range(len(models)):
+            if models[i].name in recipe._contributions:
+                continue
             if isinstance(models[i], ParametricModelEquation):
                 models[i].set_profile(profiles[i])
                 models[i]._contribution.set_residual_equation(
@@ -539,11 +542,13 @@ class RefinementSession:
 
         if constraints:
             for var_name, value in constraints[0].items():
-                if var_name not in recipe._parameters:
+                if var_name in recipe._parameters:
+                    recipe._parameters[var_name].value = value
+                else:
                     recipe.create_new_variable(var_name, value)
-            for constrained_name, constraint_eq_str in constraints[1].items():
-                constrained_var = self.get_variable(constrained_name)["obj"]
-                recipe.add_constraint(constrained_var, constraint_eq_str)
+            for constrained_name, eq_str in constraints[1].items():
+                par = self.get_variable(constrained_name)["obj"]
+                recipe.add_constraint(par, eq_str)
 
         variables = [self.get_variable(name)["obj"] for name in variable_names]
         variable_names = ["_".join(name.split(".")) for name in variable_names]
@@ -587,10 +592,9 @@ class RefinementSession:
         except TypeError:
             result_string = "Refinement Finished."
 
-        if constraints:
-            for constrained_name, constraint_eq_str in constraints[1].items():
-                constrained_var = self.get_variable(constrained_name)["obj"]
-                recipe.remove_constraint(constrained_var)
+        for par in list(recipe._constraints):
+            recipe.remove_constraint(par)
+
         return {
             "success": bool(result.success),
             "status": int(result.status),

@@ -282,6 +282,106 @@ def test_constraints():
     assert len(recipe._constraints) == 0
 
 
+def test_constraints_reuse_recipe():
+    # C1: Solve with a=b=c constraints, then solve again with the same recipe
+    #  and add alpha=beta=gamma=90 constraints (fixed, not refined).
+    #  Expect the refined parameters are close to the true values.
+    session = RefinementSession()
+    session.add_profile_from_file(
+        profile_name="ni_profile", profile_path=str(_DATA_DIR / "Ni.gr")
+    )
+    session.set_profile_calculation_range(
+        profile_name="ni_profile",
+        xmin=1.5,
+        xmax=20,
+        dx=0.01,
+    )
+    session.update_profile_meta(
+        profile_name="ni_profile",
+        meta={"qmin": 0.1},
+    )
+    session.add_pdf_model(
+        model_name="pdf",
+        structure_file_path=str(_DATA_DIR / "Ni.cif"),
+        finite=False,
+    )
+    session.set_variables_value(
+        name_value_dict={
+            "pdf.phase.lattice.a": 3.52,
+            "pdf.scale": 0.4,
+            "pdf.phase.Ni0.Uiso": 0.005,
+            "pdf.delta2": 2,
+            "pdf.qdamp": 0.04,
+            "pdf.qbroad": 0.02,
+        },
+    )
+    uiso_constraints = {
+        "pdf.phase.Ni0.Uiso": "uiso",
+        "pdf.phase.Ni1.Uiso": "uiso",
+        "pdf.phase.Ni2.Uiso": "uiso",
+        "pdf.phase.Ni3.Uiso": "uiso",
+    }
+    lattice_constraints = {
+        "pdf.phase.lattice.a": "lattice",
+        "pdf.phase.lattice.b": "lattice",
+        "pdf.phase.lattice.c": "lattice",
+    }
+    angle_constraints = {
+        "pdf.phase.lattice.alpha": "angle",
+        "pdf.phase.lattice.beta": "angle",
+        "pdf.phase.lattice.gamma": "angle",
+    }
+    variable_names = [
+        "lattice",
+        "pdf.scale",
+        "uiso",
+        "pdf.delta2",
+        "pdf.qdamp",
+        "pdf.qbroad",
+    ]
+    recipe_name = "ni_recipe"
+    session.solve(
+        name=recipe_name,
+        profile_names=["ni_profile"],
+        model_names=["pdf"],
+        constraints=[
+            {"lattice": 3.52, "uiso": 0.005},
+            {**lattice_constraints, **uiso_constraints},
+        ],
+        variable_names=variable_names,
+    )
+    session.solve(
+        name=recipe_name,
+        profile_names=["ni_profile"],
+        model_names=["pdf"],
+        constraints=[
+            {"lattice": 3.52, "uiso": 0.005, "angle": 90},
+            {**lattice_constraints, **uiso_constraints, **angle_constraints},
+        ],
+        variable_names=variable_names,
+    )
+    name_to_cmi_name = {
+        "pdf.scale": "s0",
+        "pdf.phase.lattice.a": "G1_a",
+        "pdf.phase.Ni0.Uiso": "G1_Uiso_0",
+        "pdf.delta2": "G1_delta2",
+        "pdf.qdamp": "qdamp",
+        "pdf.qbroad": "qbroad",
+    }
+    ni_refined_parameters = run_ni_example()
+    for name, cmi_name in name_to_cmi_name.items():
+        assert numpy.isclose(
+            session.get_variable(name)["value"],
+            ni_refined_parameters[cmi_name],
+            rtol=1e-2,
+        )
+    for angle in ["alpha", "beta", "gamma"]:
+        assert (
+            session.get_variable(f"pdf.phase.lattice.{angle}")["value"] == 90
+        )
+    assert len(session.recipes_dict[recipe_name]._constraints) == 0
+
+
 def test_refine_multi_contribution():
     session = RefinementSession()
     session.add_profile_from_file(
