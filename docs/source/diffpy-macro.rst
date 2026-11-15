@@ -112,6 +112,7 @@ Only the variables listed in ``variable_names`` are refined.
 
 .. note::
 
-    Any public method of ``RefinementSession`` can be called from a macro.
-    See ``diffpy.apps.parametric_refinement.refinement_session`` for the
-    available methods and their arguments.
+    All commands from in a macro file are also tools inside
+    ``cmi-agentic-ui`` MCP server as they are essentially wrappers around the
+    same underlying methods. Please refer to :doc:`diffpy-agent`
+    for more information.
