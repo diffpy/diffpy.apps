@@ -587,6 +587,7 @@ class RefinementSession:
             ftol=ftol,
             xtol=xtol,
         )
+        recipe.residual(result.x)
         # NOTE: non-scalar value will raise error in `get_results_string`
         try:
             result_string = FitResults(recipe).get_results_string()
@@ -595,7 +596,8 @@ class RefinementSession:
 
         for par in list(recipe._constraints):
             recipe.remove_constraint(par)
-
+        if recipe._restraints:
+            recipe.remove_soft_bounds(*recipe._restraints)
         return {
             "success": bool(result.success),
             "status": int(result.status),
