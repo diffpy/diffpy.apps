@@ -3,7 +3,7 @@ import argparse
 from rich.prompt import Confirm
 
 from diffpy.apps.app_agentify import agentify, list_skills
-from diffpy.apps.app_runmacro import runmacro
+from diffpy.apps.parametric_refinement.parametric_macro import runmacro
 from diffpy.apps.version import __version__  # noqa
 
 
@@ -42,12 +42,12 @@ def main():
     # runmacro application
     runmacro_parser = apps_parsers.add_parser(
         "runmacro",
-        help="Run a macro `<.dp-in>` file",
+        help="Run a macro file",
     )
     runmacro_parser.add_argument(
         "file",
         type=str,
-        help="Path to the  `<.dp-in>` macro file to be run",
+        help="Path to the macro file to be run",
     )
     runmacro_parser.set_defaults(func=runmacro)
     # agentify application
