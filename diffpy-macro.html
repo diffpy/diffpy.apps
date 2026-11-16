@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DiffPy Macro Interface &mdash; diffpy.apps 0.2.2 documentation</title>
+  <title>DiffPy Macro Interface &mdash; diffpy.apps 0.2.3rc0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -14,7 +14,7 @@
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=1c17f339"></script>
+      <script src="_static/documentation_options.js?v=dc9b5cb6"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -82,7 +82,7 @@
   <section id="diffpy-macro-interface">
 <h1>DiffPy Macro Interface<a class="headerlink" href="#diffpy-macro-interface" title="Link to this heading"></a></h1>
 <p>Diffpy macro files can be executed using the <code class="docutils literal notranslate"><span class="pre">runmacro</span></code> application.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diffpy-app<span class="w"> </span>runmacro<span class="w"> </span>&lt;macro_file.dp-in&gt;
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diffpy-app<span class="w"> </span>runmacro<span class="w"> </span>&lt;macro_file&gt;
 </pre></div>
 </div>
 <p>To follow the example,</p>
@@ -103,98 +103,86 @@ unzip<span class="w"> </span>runmacro_example.zip
 </div>
 <section id="how-to-write-macro">
 <h2>How to write macro<a class="headerlink" href="#how-to-write-macro" title="Link to this heading"></a></h2>
+<p>A macro file is a list of calls to the methods of the refinement session,
+one call per line or spread over several lines. Arguments are written as
+<code class="docutils literal notranslate"><span class="pre">name=value</span></code>. Supported values are numbers, quoted strings, <code class="docutils literal notranslate"><span class="pre">True</span></code>,
+<code class="docutils literal notranslate"><span class="pre">False</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code>, lists <code class="docutils literal notranslate"><span class="pre">[...]</span></code>, and dictionaries <code class="docutils literal notranslate"><span class="pre">{&quot;key&quot;:</span> <span class="pre">value}</span></code>.
+Everything after <code class="docutils literal notranslate"><span class="pre">#</span></code> is a comment. Calls are executed in order, and the
+macro is rejected before running if any method name is unknown.</p>
 <p>Let’s still use the Ni example created earlier, but this time we will
 write the macro file from scratch.</p>
 <ol class="arabic simple">
-<li><p>Prepare the structure and profile file you want to work with.</p></li>
+<li><p>Load the profile and set the calculation range.</p></li>
 </ol>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The structure file is a <code class="docutils literal notranslate"><span class="pre">.cif</span></code> file representing the atomic arrangement in
-your sample, and the profile file is a <code class="docutils literal notranslate"><span class="pre">.gr</span></code> file containing the
-experimental data.</p>
-</div>
-<p>Start the macro file with the following two lines:</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>load structure G1 from "path/to/structure.cif"
-load profile exp_ni from "path/to/profile.gr"
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>add_profile_from_file(
+    profile_name="ni_profile", profile_path="path/to/profile.gr"
+)
+set_profile_calculation_range(
+    profile_name="ni_profile", xmin=1.5, xmax=20, dx=0.01
+)
+update_profile_meta(profile_name="ni_profile", meta={"qmin": 0.1})
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">G1</span></code> and <code class="docutils literal notranslate"><span class="pre">exp_ni</span></code> are the identifiers used in the macro to refer to the
-structure and profile files, respectively. Quotes <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> are must to specify
-the file paths.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ni_profile</span></code> is the identifier used in the macro to refer to the profile.
+The profile file is a <code class="docutils literal notranslate"><span class="pre">.gr</span></code> file containing the experimental data.
+<code class="docutils literal notranslate"><span class="pre">xmin</span></code>, <code class="docutils literal notranslate"><span class="pre">xmax</span></code> and <code class="docutils literal notranslate"><span class="pre">dx</span></code> set the range and step size of the calculation,
+and <code class="docutils literal notranslate"><span class="pre">qmin</span></code> in the profile meta sets the minimum Q used in the refinement.</p>
 <ol class="arabic simple" start="2">
-<li><p>(Optional) Declare the space group of the structure.</p></li>
+<li><p>Create the PDF model from the structure file.</p></li>
 </ol>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>set G1 spacegroup as Fm-3m
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>add_pdf_model(
+    model_name="pdf", structure_file_path="path/to/structure.cif", finite=False
+)
+constrain_pdf_model_space_group_symmetry(
+    model_name="pdf", space_group="Fm-3m"
+)
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">G1</span></code> is the identifier for the structure file loaded earlier. Space group
-symmetry <code class="docutils literal notranslate"><span class="pre">Fm-3m</span></code> is preserved during the refinement. You can also set
-it to be <code class="docutils literal notranslate"><span class="pre">auto</span></code> to use the one automatically parsed from the structure file.
-But if space group is not provided, nor can it be determined from the structure
-file, it will be considered as <code class="docutils literal notranslate"><span class="pre">P1</span></code> space group.</p>
+<p>The structure file is a <code class="docutils literal notranslate"><span class="pre">.cif</span></code> file representing the atomic arrangement in
+your sample. The space group symmetry <code class="docutils literal notranslate"><span class="pre">Fm-3m</span></code> is preserved during the
+refinement.</p>
 <ol class="arabic simple" start="3">
-<li><p>(Optional) Set the calculation parameters for the refinement.</p></li>
+<li><p>Set the initial values of the variables.</p></li>
 </ol>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>set exp_ni calculation_range as 0.5 20.0 0.01  # r_min, r_max, r_step
-set exp_ni q_range as 0.5 20.0  # q_min, q_max
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>set_variables_value(
+    name_value_dict={
+        "pdf.phase.lattice.a": 3.52,
+        "pdf.scale": 0.4,
+        "pdf.phase.Ni0.Uiso": 0.005,
+        "pdf.delta2": 2,
+        "pdf.qdamp": 0.04,
+        "pdf.qbroad": 0.02,
+    }
+)
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">exp_ni</span></code> is the identifier for the profile file loaded earlier.
-<code class="docutils literal notranslate"><span class="pre">calculation_range</span></code> specifies the range and step size for the calculation,
-while <code class="docutils literal notranslate"><span class="pre">q_range</span></code> specifies the range of Q values to be used in the refinement.
-If calculation parameters are not set, it will use the ones
-that are defined in the profile file.</p>
+<p>Variable names follow the format <code class="docutils literal notranslate"><span class="pre">model_name.parameter</span></code>. Parameters of the
+structure are under <code class="docutils literal notranslate"><span class="pre">model_name.phase</span></code>, for example
+<code class="docutils literal notranslate"><span class="pre">pdf.phase.Ni0.Uiso</span></code> is the Uiso parameter of the atom <code class="docutils literal notranslate"><span class="pre">Ni0</span></code>.</p>
 <ol class="arabic simple" start="4">
-<li><p>Create the refinement equation.</p></li>
+<li><p>Run the refinement.</p></li>
 </ol>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>create equation variables s0
-set equation as "G1*s0"
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>solve(
+    profile_names=["ni_profile"],
+    model_names=["pdf"],
+    variable_names=[
+        "pdf.phase.lattice.a",
+        "pdf.scale",
+        "pdf.phase.Ni0.Uiso",
+        "pdf.delta2",
+        "pdf.qdamp",
+        "pdf.qbroad",
+    ],
+)
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">G1</span></code> is the identifier for the structure file loaded earlier. In the
-equation, it represents the PDF data generated from the structure <cite>G1</cite>.
-<code class="docutils literal notranslate"><span class="pre">s0</span></code> is created to count for the scaling factor.</p>
-<ol class="arabic simple" start="5">
-<li><p>Store the results.</p></li>
-</ol>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>save to "output_results.json"
-</pre></div>
-</div>
-<p>The results of the refinement will be saved to a file
-named <code class="docutils literal notranslate"><span class="pre">output_results.json</span></code>.</p>
-<ol class="arabic simple" start="6">
-<li><p>List variables to be refined.</p></li>
-</ol>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>variables:
----
-- G1.a: 3.52
-- s0: 0.4
-- G1.Uiso_0: 0.005
-- G1.delta2: 2
-- qdamp: 0.04
-- qbroad: 0.02
----
-</pre></div>
-</div>
-<p>Only variables listed in this section will be refined during the
-execution of the macro, and the variables will also be refined in that order.
-Variables with initial values specified here will be used as the
-starting point for the refinement.</p>
+<p>Only the variables listed in <code class="docutils literal notranslate"><span class="pre">variable_names</span></code> are refined.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The naming of variables follows the format
-<code class="docutils literal notranslate"><span class="pre">structure_identifier.parameter</span></code>,
-<code class="docutils literal notranslate"><span class="pre">profile_parameter</span></code>, or
-<code class="docutils literal notranslate"><span class="pre">equation_parameter</span></code>.</p>
-<p>For parameters belonging to a specific atom in the parameter,
-the naming follows the format <code class="docutils literal notranslate"><span class="pre">structure_identifier.parameter_atomindex</span></code>.
-e.g. <code class="docutils literal notranslate"><span class="pre">G1.Uiso_0</span></code> here refers to the Uiso parameter of the first atom in
-the structure <code class="docutils literal notranslate"><span class="pre">G1</span></code>.</p>
-<p>For constrained parameters, it will use the first parameter in the
-constraint. e.g. Here, lattice parameter <code class="docutils literal notranslate"><span class="pre">a=b=c</span></code>,
-and <code class="docutils literal notranslate"><span class="pre">Usio_0=Uiso_i,</span> <span class="pre">i=1,2,3</span></code>, <code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">Uiso_0</span></code> are used as the
-reference variables.</p>
+<p>All commands from in a macro file are also tools inside
+<code class="docutils literal notranslate"><span class="pre">cmi-agentic-ui</span></code> MCP server as they are essentially wrappers around the
+same underlying methods. Please refer to <a class="reference internal" href="diffpy-agent.html"><span class="doc">DiffPy Agent Interface</span></a>
+for more information.</p>
 </div>
 </section>
 </section>

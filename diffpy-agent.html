@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DiffPy Agent Interface &mdash; diffpy.apps 0.2.2 documentation</title>
+  <title>DiffPy Agent Interface &mdash; diffpy.apps 0.2.3rc0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -14,7 +14,7 @@
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=1c17f339"></script>
+      <script src="_static/documentation_options.js?v=dc9b5cb6"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -63,7 +63,11 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#how-to-add-diffpy-agent-skills">How to add Diffpy agent skills</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#when-the-agent-fails">When the agent fails</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#how-to-contribute-diffpy-agent-skills">How to contribute Diffpy agent skills</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-contribute-diffpy-agent-skills">How to contribute Diffpy agent skills</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#how-to-create-agent-skills">How to create agent skills</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#how-to-submit-agent-skills">How to submit agent skills</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="diffpy-macro.html">DiffPy Macro Interface</a></li>
@@ -174,10 +178,10 @@ better managed via <code class="docutils literal notranslate"><span class="pre">
 <li><p>Navigate to the “Developer” section.</p></li>
 <li><p>In the “Local MCP servers” region, click “Edit Config” and Open the configuration file. Its name should be <code class="docutils literal notranslate"><span class="pre">claude_desktop_config.json</span></code>.</p></li>
 </ol>
-<figure class="align-center" id="id1">
+<figure class="align-center" id="id2">
 <img alt="_images/claude_edit_config.png" src="_images/claude_edit_config.png" />
 <figcaption>
-<p><span class="caption-text">Figure 1: Screenshot of “Edit Config” in <code class="docutils literal notranslate"><span class="pre">Claude</span> <span class="pre">Desktop</span></code>.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+<p><span class="caption-text">Figure 1: Screenshot of “Edit Config” in <code class="docutils literal notranslate"><span class="pre">Claude</span> <span class="pre">Desktop</span></code>.</span><a class="headerlink" href="#id2" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <div class="admonition note">
@@ -259,10 +263,10 @@ would look like this:</p>
 </ol>
 <p>8. Go to the same “Local MCP servers” section and verify that the
 <code class="docutils literal notranslate"><span class="pre">cmi-agentic-ui</span></code> server is listed and active.</p>
-<figure class="align-center" id="id2">
+<figure class="align-center" id="id3">
 <img alt="_images/claude_validate.png" src="_images/claude_validate.png" />
 <figcaption>
-<p><span class="caption-text">Figure 2: Screenshot of active <code class="docutils literal notranslate"><span class="pre">cmi-agentic-ui</span></code> server in <code class="docutils literal notranslate"><span class="pre">Claude</span></code>.</span><a class="headerlink" href="#id2" title="Link to this image"></a></p>
+<p><span class="caption-text">Figure 2: Screenshot of active <code class="docutils literal notranslate"><span class="pre">cmi-agentic-ui</span></code> server in <code class="docutils literal notranslate"><span class="pre">Claude</span></code>.</span><a class="headerlink" href="#id3" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <ol class="arabic simple" start="9">
@@ -311,10 +315,10 @@ double backslashes (e.g., <code class="docutils literal notranslate"><span class
 <p>For <code class="docutils literal notranslate"><span class="pre">ChatGPT</span></code> Desktop, open “Settings”, and navigate to the “Integration” section. Open
 “Plugins” tab, and verify that the <code class="docutils literal notranslate"><span class="pre">cmi-agentic-ui</span></code> server is listed in the
 “MCPs” field and active.</p>
-<figure class="align-center" id="id3">
+<figure class="align-center" id="id4">
 <img alt="_images/chatgpt_validate.png" src="_images/chatgpt_validate.png" />
 <figcaption>
-<p><span class="caption-text">Figure 2: Screenshot of active <code class="docutils literal notranslate"><span class="pre">cmi-agentic-ui</span></code> server in <code class="docutils literal notranslate"><span class="pre">ChatGPT</span></code>.</span><a class="headerlink" href="#id3" title="Link to this image"></a></p>
+<p><span class="caption-text">Figure 2: Screenshot of active <code class="docutils literal notranslate"><span class="pre">cmi-agentic-ui</span></code> server in <code class="docutils literal notranslate"><span class="pre">ChatGPT</span></code>.</span><a class="headerlink" href="#id4" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>For <code class="docutils literal notranslate"><span class="pre">ChatGPT</span></code> Terminal (<code class="docutils literal notranslate"><span class="pre">Codex</span></code>), enter the following command in the conversation with the agent:</p>
@@ -339,8 +343,8 @@ using a different agent, please replace <code class="docutils literal notranslat
 <ol class="arabic simple">
 <li><p>Download the <a class="reference download internal" download="" href="_downloads/460ccb654f58bd5110209c64e30a9198/gaussian.dat"><code class="xref download docutils literal notranslate"><span class="pre">gaussian</span> <span class="pre">profile</span></code></a> to your working directory.</p></li>
 </ol>
-<p>2. Open <code class="docutils literal notranslate"><span class="pre">Claude</span> <span class="pre">Code</span></code> Desktop, launch the “Code” tab or select “Cowork” in “Chat or Cowork”
-tab.</p>
+<p>2. Open <code class="docutils literal notranslate"><span class="pre">Claude</span> <span class="pre">Code</span></code> Desktop, launch the “Code” tab or select “Cowork” in
+“Chat or Cowork” tab.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>In some Desktop distributions, the developers provide separate
@@ -367,10 +371,10 @@ a Gaussian refinement task.</p>
 </pre></div>
 </div>
 <p>And the following image is given by <code class="docutils literal notranslate"><span class="pre">Claude</span> <span class="pre">Code</span></code> Desktop:</p>
-<figure class="align-center" id="id4">
+<figure class="align-center" id="id5">
 <img alt="_images/example_bad_gaussian.png" src="_images/example_bad_gaussian.png" />
 <figcaption>
-<p><span class="caption-text">Gaussian plot (before refinement). Generated by Claude Code</span><a class="headerlink" href="#id4" title="Link to this image"></a></p>
+<p><span class="caption-text">Gaussian plot (before refinement). Generated by Claude Code</span><a class="headerlink" href="#id5" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>The conversation continues with Mr Neutron asking the agent to refine the equation model:</p>
@@ -381,10 +385,10 @@ with Rw = 0.0034. The data looks like a unit Gaussian, A = 1, u = 0, s = 1,
 plus a little noise.
 </pre></div>
 </div>
-<figure class="align-center" id="id5">
+<figure class="align-center" id="id6">
 <img alt="_images/example_good_gaussian.png" src="_images/example_good_gaussian.png" />
 <figcaption>
-<p><span class="caption-text">Gaussian plot (after refinement). Generated by Claude Code</span><a class="headerlink" href="#id5" title="Link to this image"></a></p>
+<p><span class="caption-text">Gaussian plot (after refinement). Generated by Claude Code</span><a class="headerlink" href="#id6" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>Mr. Neutron is satisfied with the refined Gaussian plot.</p>
@@ -409,10 +413,10 @@ a Ni PDF refinement task.</p>
 </pre></div>
 </div>
 <p>and the following image shows the result:</p>
-<figure class="align-center" id="id6">
+<figure class="align-center" id="id7">
 <img alt="_images/example_bad_ni.png" src="_images/example_bad_ni.png" />
 <figcaption>
-<p><span class="caption-text">Ni PDF plot(before refinement). Generated by Claude Code</span><a class="headerlink" href="#id6" title="Link to this image"></a></p>
+<p><span class="caption-text">Ni PDF plot(before refinement). Generated by Claude Code</span><a class="headerlink" href="#id7" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>Mr Neutron knows that the initial plot is not ideal because the structure has not been refined yet. So he continues:</p>
@@ -427,10 +431,10 @@ a Ni PDF refinement task.</p>
 </pre></div>
 </div>
 <p>and the following image shows the refined result:</p>
-<figure class="align-center" id="id7">
+<figure class="align-center" id="id8">
 <img alt="_images/example_good_ni.png" src="_images/example_good_ni.png" />
 <figcaption>
-<p><span class="caption-text">Ni PDF plot(after refinement). Generated by Claude Code</span><a class="headerlink" href="#id7" title="Link to this image"></a></p>
+<p><span class="caption-text">Ni PDF plot(after refinement). Generated by Claude Code</span><a class="headerlink" href="#id8" title="Link to this image"></a></p>
 </figcaption>
 </figure>
 <p>Mr Neutron is satisfied with the refined result.</p>
@@ -443,6 +447,10 @@ actions for the simple PDF refinement task. The effort can be further reduced
 by adding our prepared agent skills into the context.</p>
 <p>To use it, run the following command in the terminal after installing <code class="docutils literal notranslate"><span class="pre">diffpy.apps</span></code>.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diffpy-app<span class="w"> </span>agentify
+</pre></div>
+</div>
+<p>To list available agent skills, run the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diffpy-app<span class="w"> </span>agentify<span class="w"> </span>--list
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">claude</span></code> and <code class="docutils literal notranslate"><span class="pre">codex</span></code> agent skills are supported. By default, it is
@@ -461,7 +469,7 @@ specify the specific agent:</p>
 </div>
 </section>
 <section id="when-the-agent-fails">
-<h2>When the agent fails<a class="headerlink" href="#when-the-agent-fails" title="Link to this heading"></a></h2>
+<span id="when-agent-fails"></span><h2>When the agent fails<a class="headerlink" href="#when-the-agent-fails" title="Link to this heading"></a></h2>
 <p>An agent using <code class="docutils literal notranslate"><span class="pre">cmi-agentic-ui</span></code> is not guaranteed to handle every complicated PDF
 refinement task by itself. Its success relies on tools in
 <code class="docutils literal notranslate"><span class="pre">cmi-agentic-ui</span></code> being executed in the correct order, and the knowledge of
@@ -485,19 +493,58 @@ the correct tools.</p>
 </section>
 <section id="how-to-contribute-diffpy-agent-skills">
 <span id="contribute-cmi-skills"></span><h2>How to contribute Diffpy agent skills<a class="headerlink" href="#how-to-contribute-diffpy-agent-skills" title="Link to this heading"></a></h2>
-<p>Skills are simply markdown files providing context for the agents.
-They help to enable the agent to follow the best practices, and to
-efficiently perform workflows sharing similar patterns.
-Please refer to the documentation from your favorite agent platform, such as
-<a class="reference external" href="https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview">Claude Documentation</a>,
-for more details.</p>
-<p><code class="docutils literal notranslate"><span class="pre">diffpy-app</span> <span class="pre">agentify</span></code> fetches our prepared agent skills from
-<a class="reference external" href="https://github.com/diffpy/cmi-agent-skills">cmi-agent-skills</a>  GitHub repository.
-If you are willing to contribute your skills, you can submit Pull Requests in
-the same repository.
-We expect the description of the workflows to follow the consistent format and wording
-conventions, i.e. the diffpy macro language. Please see <a class="reference internal" href="diffpy-macro.html"><span class="doc">DiffPy Macro Interface</span></a> for more
-details.  Thanks for sharing your work with the community!</p>
+<p>We maintain a github repository
+<a class="reference external" href="https://github.com/diffpy/cmi-agent-skills">cmi-agent-skills</a> of reviewed
+skills for PDF structure modeling tasks. Contributions from the community are
+welcome to bring AI usefulness to structure modeling practices. Users can
+deploy the agent skills from that repository by</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>diffpy-app<span class="w"> </span>agentify
+</pre></div>
+</div>
+<p>or download the corresponding skill folders directly.</p>
+<section id="how-to-create-agent-skills">
+<h3>How to create agent skills<a class="headerlink" href="#how-to-create-agent-skills" title="Link to this heading"></a></h3>
+<p>To create agent skills, please refer
+to the documentation from your favorite agent platform, such as
+<a class="reference external" href="https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview">Claude documentation</a>
+or
+<a class="reference external" href="https://learn.chatgpt.com/docs/build-skills">OpenAI documentation</a> for details.
+For effectiveness consideration, we recommend developers to write out the
+the tool name and their arguments clearly whenever possible in describing
+the workflow.</p>
+<p>For example, here is a part of our base skill <code class="docutils literal notranslate"><span class="pre">diffpy-playbook</span></code>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>## Case A — nested equation models (no structure, e.g. fitting `A*sin(a*x)`)
+
+```
+add_profile_from_arrays(xarray=[...], yarray=[...], profile_name="sine_profile")
+add_equation_model(model_name="sub", equation_str="a*x")
+add_equation_model(model_name="main", equation_str="A*sin(sub)")
+combine_models(parent_model_name="main", child_model_names=["sub"])   // "sub" is registered under its own model name
+[...]
+```
+</pre></div>
+</div>
+<p>It’s readability is targeted for agents rather than humans, but you can
+always ask the agent to generate and explain it for you.  For example, here is
+what Mr. Neutron did to generate a Ni structure modeling skill.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt; (Mr Neutron) Summarize our structure modeling workflow by stacking "tool_name(arguments)"
+&gt; (Agent)
+# 1. Load data and structure
+add_profile_from_file(profile_path="/path/to/Ni.gr", profile_name="Ni_gr")
+add_pdf_model(model_name="Ni_cif", structure_file_path="/path/to/Ni.cif", finite=False)
+set_model_profile(model_name="Ni_cif", profile_name="Ni_gr")
+[...]
+</pre></div>
+</div>
+</section>
+<section id="how-to-submit-agent-skills">
+<h3>How to submit agent skills<a class="headerlink" href="#how-to-submit-agent-skills" title="Link to this heading"></a></h3>
+<p>To submit the created agent skills, please submit Pull Requests (PRs) to the
+<a class="reference external" href="https://github.com/diffpy/cmi-agent-skills">cmi-agent-skills</a> . Please
+refer to the
+<a class="reference external" href="https://docs.github.com/en/pull-requests/reference/pull-requests">GitHub documentation</a>
+for detailed information.</p>
+</section>
 </section>
 </section>
 
