@@ -658,10 +658,32 @@ async def list_model_parameters(
 
 @mcp.tool()
 @tool_errors
-async def clear() -> str:
-    """Clear the current refinement session."""
-    session.clear()
-    return "Refinement session cleared successfully."
+async def clear(
+    recipe_names: Annotated[
+        list[str] | None, Field(description="Recipes to remove.")
+    ] = None,
+    profile_names: Annotated[
+        list[str] | None, Field(description="Profiles to remove.")
+    ] = None,
+    model_names: Annotated[
+        list[str] | None, Field(description="Models to remove.")
+    ] = None,
+    all: Annotated[
+        bool,
+        Field(description="Remove every recipe, profile and model."),
+    ] = False,
+) -> str:
+    """Remove the named recipes, profiles and models.
+
+    With no names given, or with all=True, remove everything.
+    """
+    session.clear(
+        recipe_names=recipe_names,
+        profile_names=profile_names,
+        model_names=model_names,
+        all=all,
+    )
+    return "Cleared successfully."
 
 
 @mcp.tool()
