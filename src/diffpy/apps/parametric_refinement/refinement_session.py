@@ -726,7 +726,37 @@ class RefinementSession:
         for id, recipe in self.recipes_dict.items():
             recipe.plot_recipe()
 
-    def clear(self):
-        self.profiles_dict.clear()
-        self.models_dict.clear()
-        self.recipes_dict.clear()
+    def clear(
+        self,
+        recipe_names=None,
+        profile_names=None,
+        model_names=None,
+        all=False,
+    ):
+        """Remove the named recipes, profiles and models.
+
+        With no names given, or with ``all=True``, remove everything.
+
+        Raises
+        ------
+        ValueError
+            If a named item does not exist.
+        """
+        selection = (
+            (recipe_names, self.recipes_dict, "recipe"),
+            (profile_names, self.profiles_dict, "profile"),
+            (model_names, self.models_dict, "model"),
+        )
+        if all or not any(names for names, _, _ in selection):
+            for _, items, _ in selection:
+                items.clear()
+            return
+        for names, items, kind in selection:
+            missing = [n for n in names or [] if n not in items]
+            if missing:
+                raise ValueError(
+                    f"Unknown {kind} name(s) {missing}. Nothing was cleared."
+                )
+        for names, items, _ in selection:
+            for name in names or []:
+                del items[name]
