@@ -41,20 +41,19 @@ Currently it provides:
 1. Macro interface for PDF refinements. Supported by the command ``runmacro``.
 2. Agent interface for PDF refinements. Supported by the included MCP server.
 
-For more information about the diffpy.apps library, please consult our `online documentation <https://diffpy.github.io/diffpy.apps>`_.
+For more information about the ``diffpy.apps`` library, please consult our `online documentation <https://diffpy.github.io/diffpy.apps>`_.
 
 Citation
 --------
 
-If you use diffpy.apps in a scientific publication, we would like you to cite this package as
+If you use ``diffpy.apps`` in a scientific publication, we would like you to cite this package as
 
         diffpy.apps Package, https://github.com/diffpy/diffpy.apps
 
 Installation
 ------------
 
-The preferred method is to use `Miniconda Python
-<https://docs.conda.io/projects/miniconda/en/latest/miniconda-install.html>`_
+The preferred method is to use `Miniconda Python <https://docs.conda.io/projects/miniconda/en/latest/miniconda-install.html>`_
 and install from the "conda-forge" channel of Conda packages.
 
 To add "conda-forge" to the conda channels, run the following in a terminal. ::
@@ -113,7 +112,7 @@ Support and Contribute
 
 If you see a bug or want to request a feature, please `report it as an issue <https://github.com/diffpy/diffpy.apps/issues>`_ and/or `submit a fix as a PR <https://github.com/diffpy/diffpy.apps/pulls>`_.
 
-Feel free to fork the project and contribute. To install diffpy.apps
+Feel free to fork the project and contribute. To install ``diffpy.apps``
 in a development mode, with its sources being directly used by Python
 rather than copied to a package directory, use the following in the root
 directory ::
@@ -139,7 +138,7 @@ Before contributing, please read our `Code of Conduct <https://github.com/diffpy
 Contact
 -------
 
-For more information on diffpy.apps please visit the project `web-page <https://diffpy.github.io/>`_ or email the maintainers ``Yuchen Xiao(yx2924@columbia.edu) and Simon Billinge(sbillinge@ucsb.edu)``.
+For more information on ``diffpy.apps`` please visit the project `web-page <https://diffpy.github.io/>`_ or email the maintainers ``Yuchen Xiao(xiaoyuch@msu.edu) and Simon Billinge(sbillinge@ucsb.edu)``.
 
 Acknowledgements
 ----------------
