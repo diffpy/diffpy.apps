@@ -4,6 +4,17 @@ Release notes
 
 .. current developments
 
+0.2.3
+=====
+
+**Added:**
+
+* Add diffpy-app agentify list and support -skill flag for both diffpy-app agentify and diffpy-app agentify list.
+* Update the grammar of macro to be compatible with cmi-agentic-ui.
+* ``clear`` accepts ``recipe_names``, ``profile_names`` and ``model_names`` to remove only the named items.
+* Reuse constraints variables across recipe to avoid rebuilding recipe every time.
+
+
 0.2.2
 =====
 
