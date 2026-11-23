@@ -7,6 +7,10 @@ Release notes
 0.2.3
 =====
 
+
+0.2.3
+=====
+
 **Added:**
 
 * Add diffpy-app agentify list and support -skill flag for both diffpy-app agentify and diffpy-app agentify list.
